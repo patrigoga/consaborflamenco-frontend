@@ -1,0 +1,13 @@
+name: Docker SSR CI
+on:
+  push:
+    branches: ["feature/docker-ssr"]
+  pull_request:
+    branches: [main]
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build frontend image
+        run: docker build --tag consaborflamenco-frontend:ci .
