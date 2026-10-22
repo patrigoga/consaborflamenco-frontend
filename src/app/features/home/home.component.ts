@@ -1,9 +1,15 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { SECCIONES } from '../../navegacion';
 import { Artista, ArtistasService } from '../../artistas.service';
 
-@Component({selector:'app-home',standalone:true,imports:[CommonModule],templateUrl:'./home.component.html'})
+@Component({selector:'app-home',standalone:true,imports:[CommonModule, RouterLink],templateUrl:'./home.component.html'})
 export class HomeComponent {
+  readonly rutas = {
+    artistas: SECCIONES.artistas.ruta, eventos: SECCIONES.eventos.ruta, academias: SECCIONES.academias.ruta,
+    historia: SECCIONES.historia.ruta, palos: SECCIONES.palos.ruta, llaves: SECCIONES.llaves.ruta, membresias: SECCIONES.membresias.ruta
+  };
   readonly artistas = signal<Artista[]>([]);
   readonly cargando = signal(true);
   readonly error = signal(false);

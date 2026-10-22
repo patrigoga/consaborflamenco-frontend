@@ -31,7 +31,14 @@
             "ssr": {
               "entry": "src/server.ts"
             },
-            "prerender": false
+            "prerender": false,
+            "security": {
+              "allowedHosts": [
+                "consaborflamenco.com",
+                "www.consaborflamenco.com",
+                "localhost"
+              ]
+            }
           }
         },
         "serve": {
