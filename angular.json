@@ -37,7 +37,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "consaborflamenco:build"
+            "buildTarget": "consaborflamenco:build",
+            "proxyConfig": "proxy.conf.json"
           }
         }
       }
