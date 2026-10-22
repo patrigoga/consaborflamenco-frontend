@@ -10,7 +10,7 @@ import { AvisosService } from '../core/avisos.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <a class="adm-saltar" href="#adm-contenido">Saltar al contenido</a>
+    <button type="button" class="adm-saltar" (click)="saltarAlContenido()">Saltar al contenido</button>
     <div class="adm-marco" [class.menu-abierto]="menuAbierto()">
       <header class="adm-barra">
         <button type="button" class="adm-barra__menu" (click)="menuAbierto.set(!menuAbierto())"
@@ -61,6 +61,11 @@ export class AdminLayoutComponent {
   constructor() {
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed())
       .subscribe(() => this.menuAbierto.set(false));
+  }
+
+  /** Con <base href="/">, un enlace "#adm-contenido" llevaría a la portada: se mueve el foco en su lugar. */
+  saltarAlContenido(): void {
+    document.getElementById('adm-contenido')?.focus();
   }
 
   salir(): void {
