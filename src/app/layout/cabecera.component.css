@@ -1,0 +1,69 @@
+:host { display: block; position: sticky; top: 0; z-index: 30; }
+.cab { background: #141414; color: #fff; border-bottom: 1px solid #000; }
+.cab__barra {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  max-width: 1140px; width: calc(100% - 2 * max(20px, 3vw)); margin: 0 auto; min-height: 76px;
+}
+.cab__marca { font-family: Georgia, "Times New Roman", serif; font-size: 23px; font-weight: bold; white-space: nowrap; color: #fff; text-decoration: none; }
+.cab__marca span { color: #dfb66a; }
+.cab__nav { display: flex; align-items: center; gap: 22px; }
+.cab__lista { display: flex; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.cab__enlace {
+  display: inline-flex; align-items: center; gap: 6px; padding: 10px 12px; font: inherit; font-size: 14.5px;
+  color: #ddd6ca; background: none; border: 0; cursor: pointer; text-decoration: none; position: relative;
+}
+.cab__enlace:hover, .cab__subenlace:hover { color: #fff; }
+.cab__enlace::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; background: transparent; }
+.cab__enlace.is-activo { color: #fff; }
+.cab__enlace.is-activo::after { background: #cda15c; }
+.cab__flecha { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
+.cab__grupo { position: relative; }
+.is-abierto > .cab__desplegar .cab__flecha { transform: translateY(2px) rotate(225deg); }
+.cab__submenu {
+  list-style: none; margin: 0; padding: 8px; position: absolute; top: calc(100% + 6px); left: 0; min-width: 210px;
+  background: #1d1a17; border: 1px solid #3a332b; border-top: 2px solid #cda15c; border-radius: 0 0 6px 6px;
+  box-shadow: 0 18px 40px #0007; display: none;
+}
+.cab__grupo.is-abierto .cab__submenu { display: block; }
+.cab__subenlace { display: block; padding: 9px 12px; border-radius: 4px; color: #ddd6ca; text-decoration: none; font-size: 14.5px; }
+.cab__subenlace:hover { background: #2a251f; }
+.cab__subenlace.is-activo { color: #dfb66a; background: #2a251f; }
+.cab__miembro {
+  border: 1px solid #cda15c; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: 13.5px; white-space: nowrap; text-decoration: none;
+}
+.cab__miembro:hover, .cab__miembro.is-activo { background: #cda15c; color: #1c1b19; }
+.cab :focus-visible { outline: 2px solid #cda15c; outline-offset: 2px; }
+.cab__boton-menu { display: none; }
+.cab__oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Tablet y móvil: menú desplegable a pantalla completa bajo la barra. */
+@media (max-width: 1023px) {
+  .cab__barra { min-height: 64px; flex-wrap: wrap; gap: 0; }
+  .cab__boton-menu {
+    display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; background: none; border: 0; color: #fff; cursor: pointer;
+  }
+  .cab__icono, .cab__icono::before, .cab__icono::after { display: block; width: 22px; height: 2px; background: currentColor; position: relative; transition: transform .2s, background .2s; }
+  .cab__icono::before, .cab__icono::after { content: ""; position: absolute; left: 0; }
+  .cab__icono::before { top: -7px; }
+  .cab__icono::after { top: 7px; }
+  .cab--abierta .cab__icono { background: transparent; }
+  .cab--abierta .cab__icono::before { transform: translateY(7px) rotate(45deg); }
+  .cab--abierta .cab__icono::after { transform: translateY(-7px) rotate(-45deg); }
+  .cab__nav {
+    display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 16px;
+    padding: 8px 0 24px; max-height: calc(100vh - 64px); overflow-y: auto;
+  }
+  .cab--abierta .cab__nav { display: flex; }
+  .cab__lista { flex-direction: column; align-items: stretch; gap: 0; }
+  .cab__lista > li { border-bottom: 1px solid #2a251f; }
+  .cab__enlace { width: 100%; justify-content: space-between; padding: 15px 4px; font-size: 17px; }
+  .cab__enlace::after { left: 0; right: auto; width: 3px; top: 12px; bottom: 12px; height: auto; }
+  .cab__enlace.is-activo { padding-left: 14px; }
+  .cab__submenu { position: static; display: none; min-width: 0; padding: 0 0 12px 12px; background: none; border: 0; box-shadow: none; }
+  .cab__subenlace { padding: 11px 12px; font-size: 16px; }
+  .cab__miembro { text-align: center; padding: 14px; font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab__flecha, .cab__icono, .cab__icono::before, .cab__icono::after { transition: none; }
+}

@@ -89,7 +89,7 @@ ok(forjada.status() === 403, 'POST con la cookie de sesión pero sin cabecera X-
 
 // Portada pública
 await page.goto(BASE + '/', { waitUntil: 'networkidle' }); await page.waitForTimeout(800);
-ok((await page.textContent('#artistas')).includes(NOMBRE), 'la portada pública muestra el artista publicado');
+ok((await page.textContent('section[aria-labelledby="titulo-artistas"]')).includes(NOMBRE), 'la portada pública muestra el artista publicado');
 
 // Archivar con el diálogo
 await page.goto(BASE + '/admin/artistas/' + id, { waitUntil: 'networkidle' });

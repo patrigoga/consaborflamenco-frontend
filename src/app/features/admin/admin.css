@@ -32,7 +32,7 @@
 .adm :focus-visible { outline: 2px solid var(--oro); outline-offset: 2px; }
 :where(.adm) button { font: inherit; }
 .adm-oculto { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.adm-saltar { position: absolute; left: 12px; top: -48px; z-index: 50; background: var(--oro); color: var(--negro); padding: 8px 14px; border-radius: var(--radio); }
+.adm-saltar { position: absolute; left: 12px; top: -48px; z-index: 50; background: var(--oro); color: var(--negro); padding: 8px 14px; border-radius: var(--radio); border: 0; font: inherit; cursor: pointer; }
 .adm-saltar:focus { top: 12px; }
 
 /* ---------- Marca */

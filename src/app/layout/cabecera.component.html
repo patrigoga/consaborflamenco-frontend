@@ -1,0 +1,38 @@
+<header class="cab" [class.cab--abierta]="menuAbierto()">
+  <div class="cab__barra">
+    <a routerLink="/" class="cab__marca" aria-label="ConSaborFlamenco, inicio">Con<span>Sabor</span>Flamenco</a>
+
+    <button type="button" class="cab__boton-menu" (click)="alternarMenu()"
+            [attr.aria-expanded]="menuAbierto()" aria-controls="menu-principal">
+      <span class="cab__icono" aria-hidden="true"></span>
+      <span class="cab__oculto">{{ menuAbierto() ? 'Cerrar menú' : 'Abrir menú' }}</span>
+    </button>
+
+    <nav id="menu-principal" class="cab__nav" aria-label="Navegación principal">
+      <ul class="cab__lista">
+        @for (e of navegacion; track e.texto) {
+          @if (esGrupo(e)) {
+            @let g = comoGrupo(e);
+            <li class="cab__grupo" [class.is-abierto]="grupoAbierto() === g.texto" (mouseenter)="alPasar(g, true)" (mouseleave)="alPasar(g, false)">
+              <button type="button" class="cab__enlace cab__desplegar" [class.is-activo]="grupoActivo() === g.texto"
+                      (click)="alternarGrupo(g)" [attr.aria-expanded]="grupoAbierto() === g.texto" [attr.aria-controls]="idGrupo(g)">
+                {{ g.texto }}<span class="cab__flecha" aria-hidden="true"></span>
+              </button>
+              <ul class="cab__submenu" [id]="idGrupo(g)">
+                @for (h of g.hijos; track h.ruta) {
+                  <li><a [routerLink]="h.ruta" routerLinkActive="is-activo" ariaCurrentWhenActive="page" class="cab__subenlace">{{ h.texto }}</a></li>
+                }
+              </ul>
+            </li>
+          } @else {
+            <li>
+              <a [routerLink]="$any(e).ruta" routerLinkActive="is-activo" [routerLinkActiveOptions]="{ exact: !!$any(e).exacto }"
+                 ariaCurrentWhenActive="page" class="cab__enlace">{{ e.texto }}</a>
+            </li>
+          }
+        }
+      </ul>
+      <a [routerLink]="membresia.ruta" routerLinkActive="is-activo" ariaCurrentWhenActive="page" class="cab__miembro">{{ membresia.texto }}</a>
+    </nav>
+  </div>
+</header>
