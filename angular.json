@@ -31,13 +31,21 @@
             "ssr": {
               "entry": "src/server.ts"
             },
-            "prerender": false
+            "prerender": false,
+            "security": {
+              "allowedHosts": [
+                "consaborflamenco.com",
+                "www.consaborflamenco.com",
+                "localhost"
+              ]
+            }
           }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "consaborflamenco:build"
+            "buildTarget": "consaborflamenco:build",
+            "proxyConfig": "proxy.conf.json"
           }
         }
       }
