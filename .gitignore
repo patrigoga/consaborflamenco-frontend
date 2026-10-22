@@ -3,3 +3,6 @@ dist/
 .angular/
 coverage/
 .env
+
+# Capturas de la prueba e2e local
+e2e/resultados/
