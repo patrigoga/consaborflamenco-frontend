@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { SECCIONES } from '../../navegacion';
 import { Artista, ArtistasService } from '../../artistas.service';
 
-@Component({selector:'app-home',standalone:true,imports:[CommonModule, RouterLink],templateUrl:'./home.component.html'})
+@Component({selector:'app-home',standalone:true,imports:[CommonModule, RouterLink],templateUrl:'./home.component.html',styleUrl:'./home.component.css'})
 export class HomeComponent {
   readonly rutas = {
     artistas: SECCIONES.artistas.ruta, eventos: SECCIONES.eventos.ruta, academias: SECCIONES.academias.ruta,
