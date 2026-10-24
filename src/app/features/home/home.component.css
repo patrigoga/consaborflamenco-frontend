@@ -2,17 +2,20 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: max(520px, 34vw);
+  min-height: clamp(360px, 25vw, 440px);
+  padding: 40px 6%;
   background: #100c09;
 }
 
 .hero-image {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  inset: 0 0 0 auto;
+  width: auto;
+  max-width: none;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: right top;
+  mask-image: linear-gradient(to right, transparent, #000 18%);
   z-index: -1;
 }
 
@@ -45,13 +48,16 @@
 
   .hero-image {
     position: relative;
+    inset: auto;
     display: block;
-    height: clamp(260px, 72vw, 380px);
+    width: 100%;
+    height: clamp(190px, 54vw, 270px);
+    object-fit: cover;
     mask-image: linear-gradient(#000 78%, transparent);
   }
 
   .hero-inner {
-    padding: 10px 20px 65px;
+    padding: 10px 20px 40px;
   }
 
   .hero-copy {
