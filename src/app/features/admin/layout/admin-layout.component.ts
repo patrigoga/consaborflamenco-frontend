@@ -26,6 +26,7 @@ import { AvisosService } from '../core/avisos.service';
         <ul class="adm-nav">
           <li><a routerLink="/admin" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Inicio</a></li>
           <li><a routerLink="/admin/artistas" routerLinkActive="activo">Artistas</a></li>
+          <li><a routerLink="/admin/consagrados" routerLinkActive="activo">Artistas consagrados</a></li>
           <li><a routerLink="/admin/destacados" routerLinkActive="activo">Destacados</a></li>
           @if (auth.esPrincipal()) {
             <li><a routerLink="/admin/cuentas" routerLinkActive="activo">Cuentas de acceso</a></li>
