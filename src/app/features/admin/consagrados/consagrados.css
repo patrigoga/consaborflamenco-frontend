@@ -1,0 +1,15 @@
+.consagrados-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.consagrado-tarjeta { display: block; height: 100%; background: var(--blanco); border: 1px solid var(--linea); border-radius: 8px; overflow: hidden; text-decoration: none; color: inherit; }
+.consagrado-tarjeta:hover, .consagrado-tarjeta:focus-visible { border-color: var(--oro); }
+.consagrado-tarjeta > img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: center 25%; display: block; }
+.consagrado-tarjeta__texto { padding: 20px; }
+.consagrado-tarjeta h2 { font: normal 24px var(--serif); margin: 0 0 12px; overflow-wrap: anywhere; }
+.consagrado-tarjeta p { color: var(--piedra); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; white-space: pre-line; }
+.consagrado-tarjeta small { display: block; color: var(--piedra); overflow-wrap: anywhere; margin-bottom: 16px; }
+.consagrado-preview { display: block; width: 100%; height: 280px; object-fit: contain; background: #ede8df; border-radius: 5px; margin-bottom: 16px; }
+.consagrado-preview--vacio { display: grid; place-items: center; padding: 24px; text-align: center; color: var(--piedra); }
+.consagrado-elegir { cursor: pointer; }
+.consagrado-archivo { display: block; width: 100%; margin-top: 12px; font-size: 13px; }
+.consagrado-nombre-archivo { overflow-wrap: anywhere; }
+@media (max-width: 1200px) { .consagrados-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .consagrados-grid { grid-template-columns: minmax(0, 1fr); } }

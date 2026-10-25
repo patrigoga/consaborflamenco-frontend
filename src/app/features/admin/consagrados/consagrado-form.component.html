@@ -1,0 +1,50 @@
+<nav class="adm-migas" aria-label="Ruta"><a routerLink="/admin/consagrados">Artistas consagrados</a></nav>
+<header class="adm-cabecera"><div>
+  <h1 class="adm-titulo">{{ ficha()?.titulo ?? 'Nuevo artista consagrado' }}</h1>
+  <p class="adm-subtitulo">Añade una imagen, el título y la descripción de la ficha.</p>
+</div></header>
+@if (errorCarga()) {
+  <p class="adm-alerta" role="alert">{{ errorCarga() }}</p>
+} @else if (cargando()) {
+  <p role="status">Cargando ficha…</p>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate id="ficha-consagrado">
+    <div class="adm-ficha">
+      <div class="adm-ficha__datos">
+        <div class="adm-campo">
+          <label for="consagrado-titulo">Título o nombre del artista <span class="adm-ayuda">(obligatorio)</span></label>
+          <input id="consagrado-titulo" formControlName="titulo" maxlength="160" autocomplete="off" [attr.aria-invalid]="!!error('titulo')" aria-describedby="consagrado-titulo-error" (input)="errores.set({})">
+          @if (error('titulo')) { <p class="adm-campo__error" id="consagrado-titulo-error">{{ error('titulo') }}</p> }
+        </div>
+        <div class="adm-campo">
+          <label for="consagrado-descripcion">Descripción <span class="adm-ayuda">(obligatoria)</span></label>
+          <textarea id="consagrado-descripcion" formControlName="descripcion" rows="14" maxlength="20000" [attr.aria-invalid]="!!error('descripcion')" aria-describedby="consagrado-descripcion-ayuda consagrado-descripcion-error" (input)="errores.set({})"></textarea>
+          <p class="adm-ayuda" id="consagrado-descripcion-ayuda">{{ form.controls.descripcion.value.length }} / 20000 caracteres. Se conservan los párrafos del texto.</p>
+          @if (error('descripcion')) { <p class="adm-campo__error" id="consagrado-descripcion-error">{{ error('descripcion') }}</p> }
+        </div>
+        <div class="adm-campo">
+          <label for="consagrado-fuente">Fuente bibliográfica <span class="adm-ayuda">(opcional)</span></label>
+          <input id="consagrado-fuente" formControlName="fuente" maxlength="500" placeholder="Libro, autor y página" [attr.aria-invalid]="!!error('fuente')" (input)="errores.set({})">
+          @if (error('fuente')) { <p class="adm-campo__error">{{ error('fuente') }}</p> }
+        </div>
+      </div>
+      <aside class="adm-ficha__lateral" aria-label="Imagen del artista">
+        <section class="adm-panel">
+          <h2 class="adm-panel__titulo">Imagen obligatoria</h2>
+          @if (preview() || ficha()?.fotoUrl; as url) {
+            <img class="consagrado-preview" [src]="url" [alt]="form.controls.titulo.value || 'Vista previa de la imagen'">
+          } @else { <div class="consagrado-preview consagrado-preview--vacio">Selecciona la imagen del artista</div> }
+          <label class="adm-btn consagrado-elegir" for="consagrado-imagen">{{ ficha()?.fotoUrl || preview() ? 'Cambiar imagen' : 'Elegir imagen' }}</label>
+          <input class="consagrado-archivo" id="consagrado-imagen" type="file" accept="image/jpeg,image/png,image/webp" (change)="alElegir($event)" [attr.aria-invalid]="!!errorImagen()" aria-describedby="consagrado-imagen-ayuda consagrado-imagen-error">
+          @if (nombreArchivo()) { <p class="adm-ayuda consagrado-nombre-archivo">{{ nombreArchivo() }}</p> }
+          <p class="adm-ayuda" id="consagrado-imagen-ayuda">JPEG, PNG o WebP. Máximo 5 MB y mínimo 200 píxeles por lado.</p>
+          @if (errorImagen()) { <p class="adm-campo__error" id="consagrado-imagen-error" role="alert">{{ errorImagen() }}</p> }
+        </section>
+      </aside>
+    </div>
+    @if (errorGeneral()) { <p class="adm-alerta" role="alert">{{ errorGeneral() }}</p> }
+    <div class="adm-barra-guardar"><a routerLink="/admin/consagrados" class="adm-btn adm-btn--quieto">Volver al listado</a>
+      <button class="adm-btn adm-btn--oro" type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar ficha' }}</button>
+    </div>
+  </form>
+}

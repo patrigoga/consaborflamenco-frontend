@@ -20,6 +20,12 @@ export const ADMIN_ROUTES: Routes = [
         children: [
           { path: '', pathMatch: 'full', title: 'Inicio – Panel ConSaborFlamenco',
             loadComponent: () => import('./inicio/inicio.component').then(m => m.InicioComponent) },
+          { path: 'consagrados', title: 'Artistas consagrados – Panel ConSaborFlamenco',
+            loadComponent: () => import('./consagrados/consagrados-lista.component').then(m => m.ConsagradosListaComponent) },
+          { path: 'consagrados/nuevo', title: 'Nuevo artista consagrado – Panel ConSaborFlamenco', canDeactivate: [cambiosPendientesGuard],
+            loadComponent: () => import('./consagrados/consagrado-form.component').then(m => m.ConsagradoFormComponent) },
+          { path: 'consagrados/:id', title: 'Editar artista consagrado – Panel ConSaborFlamenco', canDeactivate: [cambiosPendientesGuard],
+            loadComponent: () => import('./consagrados/consagrado-form.component').then(m => m.ConsagradoFormComponent) },
           { path: 'artistas', title: 'Artistas – Panel ConSaborFlamenco',
             loadComponent: () => import('./artistas/artistas-lista.component').then(m => m.ArtistasListaComponent) },
           { path: 'artistas/nuevo', title: 'Nuevo artista – Panel ConSaborFlamenco', canDeactivate: [cambiosPendientesGuard],
