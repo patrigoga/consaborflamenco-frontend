@@ -24,3 +24,5 @@
     width: auto;
   }
 }
+
+.cinema-hero__slider-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#fff;margin-top:24px}.cinema-hero__slider-actions button{min-width:44px;height:44px;border-radius:50%;border:1px solid #e0bc7d;background:#12100b99;color:#f1cc88;font-size:26px;cursor:pointer}.cinema-hero__slider-actions button:focus-visible{outline:2px solid #fff;outline-offset:3px}.cinema-hero__slider-actions span{color:#f1d4a2;font-size:13px}.cinema-hero__slider-actions .cinema-button{margin-left:10px}
