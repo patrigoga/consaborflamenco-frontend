@@ -60,7 +60,7 @@ export class ProtagonistasCabeceraComponent {
       tipo: 'ARTISTA', titulo: artista.nombre,
       descripcion: [artista.disciplina, artista.provincia].filter(Boolean).join(' · '),
       imagenUrl: artista.fotoUrl,
-      destino: '/artistas/' + artista.slug
+      destino: '/revista/artistas'
     };
     this.guardar('ARTISTA');
   }
