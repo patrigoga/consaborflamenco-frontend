@@ -32,6 +32,8 @@ export const ADMIN_ROUTES: Routes = [
             loadComponent: () => import('./artistas/artista-form.component').then(m => m.ArtistaFormComponent) },
           { path: 'artistas/:id', title: 'Editar artista – Panel ConSaborFlamenco', canDeactivate: [cambiosPendientesGuard],
             loadComponent: () => import('./artistas/artista-form.component').then(m => m.ArtistaFormComponent) },
+          { path: 'cargar-datos', title: 'Cargar datos – Panel ConSaborFlamenco', canActivate: [principalGuard],
+            loadComponent: () => import('./cargar-datos/cargar-datos.component').then(m => m.CargarDatosComponent) },
           { path: 'destacados', title: 'Destacados – Panel ConSaborFlamenco',
             loadComponent: () => import('./destacados/destacados.component').then(m => m.DestacadosComponent) },
           { path: 'cuentas', title: 'Cuentas – Panel ConSaborFlamenco', canActivate: [principalGuard],
