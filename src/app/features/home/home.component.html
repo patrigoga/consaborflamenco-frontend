@@ -55,7 +55,7 @@
       <div><p class="cinema-eyebrow">LA AGENDA DEL FLAMENCO</p><h2 id="titulo-eventos">Próximos eventos</h2></div>
       <a [routerLink]="rutas.eventos">Ver agenda <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().eventos === 'json' && demo() as contenido">
+    <div class="cinema-rail cinema-rail--four" *ngIf="fuentes.fuentes().eventos === 'json' && demo() as contenido">
       <a class="cinema-tile cinema-tile--event" *ngFor="let item of contenido.eventos" [routerLink]="rutas.eventos">
         <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
         <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
@@ -74,7 +74,7 @@
       <div><p class="cinema-eyebrow">APRENDE Y COMPARTE</p><h2 id="titulo-cursos">Cursos y academias</h2></div>
       <a [routerLink]="rutas.academias">Ver academias <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().academias === 'json' && demo() as contenido">
+    <div class="cinema-rail cinema-rail--four" *ngIf="fuentes.fuentes().academias === 'json' && demo() as contenido">
       <a class="cinema-tile" *ngFor="let item of contenido.academias" [routerLink]="rutas.academias">
         <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
         <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
@@ -88,7 +88,7 @@
       <div><p class="cinema-eyebrow">CULTURA Y CONOCIMIENTO</p><h2 id="titulo-revista">Revista flamenca</h2></div>
       <a [routerLink]="rutas.historia">Explorar flamenco <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().revista === 'json' && demo() as contenido">
+    <div class="cinema-rail cinema-rail--four" *ngIf="fuentes.fuentes().revista === 'json' && demo() as contenido">
       <a class="cinema-tile" *ngFor="let item of contenido.revista" [routerLink]="item.ruta || rutas.historia">
         <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
         <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>

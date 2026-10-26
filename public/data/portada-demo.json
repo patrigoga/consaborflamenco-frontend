@@ -46,6 +46,11 @@
       "titulo": "Recital de guitarra",
       "subtitulo": "La emoción de las seis cuerdas · DEMO",
       "imagen": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=85"
+    },
+    {
+      "titulo": "Encuentro de baile flamenco",
+      "subtitulo": "Talento y tradición · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=85"
     }
   ],
   "academias": [
@@ -58,6 +63,16 @@
       "titulo": "Clases de guitarra",
       "subtitulo": "Técnica y compás · DEMO",
       "imagen": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=85"
+    },
+    {
+      "titulo": "Escuela de cante",
+      "subtitulo": "Voz, técnica y expresión · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=85"
+    },
+    {
+      "titulo": "Taller de compás",
+      "subtitulo": "Ritmo y palmas · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=85"
     }
   ],
   "revista": [
@@ -78,6 +93,12 @@
       "subtitulo": "Legado",
       "ruta": "/flamenco/llaves-de-oro",
       "imagen": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=85"
+    },
+    {
+      "titulo": "El flamenco y la literatura",
+      "subtitulo": "Poesía y cultura · DEMO",
+      "ruta": "/flamenco/historia",
+      "imagen": "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=800&q=85"
     }
   ]
 }
