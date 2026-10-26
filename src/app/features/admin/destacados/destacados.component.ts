@@ -1,4 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ProtagonistasCabeceraComponent } from './protagonistas-cabecera.component';
+import { AuthService } from '../core/auth.service';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, switchMap, catchError, of } from 'rxjs';
@@ -12,8 +14,9 @@ import { RetratoComponent } from '../ui/retrato.component';
 @Component({
   selector: 'adm-destacados',
   standalone: true,
-  imports: [RouterLink, RetratoComponent],
+  imports: [RouterLink, RetratoComponent, ProtagonistasCabeceraComponent],
   template: `
+    @if (auth.esPrincipal()) { <adm-protagonistas-cabecera /> }
     <header class="adm-cabecera">
       <div>
         <h1 class="adm-titulo">Destacados en portada</h1>
@@ -71,6 +74,7 @@ import { RetratoComponent } from '../ui/retrato.component';
   `
 })
 export class DestacadosComponent implements OnInit {
+  readonly auth = inject(AuthService);
   private readonly api = inject(AdminApiService);
   private readonly avisos = inject(AvisosService);
 

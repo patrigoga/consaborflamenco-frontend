@@ -1,11 +1,17 @@
 <div class="cinema-home">
   <section class="cinema-hero" aria-labelledby="titulo-portada">
-    <img class="cinema-hero__image" src="/images/portada-el-rubio-v1.webp" width="2172" height="724" alt="" fetchpriority="high" decoding="async">
+    <img class="cinema-hero__image" [src]="protagonistas()[slideActivo()]?.imagenUrl || '/images/portada-el-rubio-v1.webp'" width="2172" height="724" alt="" fetchpriority="high" decoding="async">
     <div class="cinema-hero__content">
       <p class="cinema-eyebrow">FLAMENCO · ARTISTAS · CULTURA · EVENTOS</p>
-      <h1 id="titulo-portada">El flamenco<br><em>vive aquí</em></h1>
-      <p class="cinema-hero__lead">Descubre artistas, cursos, festivales e historia del flamenco. Todo en un mismo lugar.</p>
-      <div class="cinema-hero__actions">
+      <h1 id="titulo-portada">{{ protagonistas()[slideActivo()]?.titulo || 'El flamenco vive aquí' }}</h1>
+      <p class="cinema-hero__lead">{{ protagonistas()[slideActivo()]?.descripcion || 'Descubre artistas, cursos, festivales e historia del flamenco. Todo en un mismo lugar.' }}</p>
+      <div *ngIf="protagonistas().length" class="cinema-hero__slider-actions" aria-label="Protagonistas de la cabecera">
+        <button type="button" (click)="anteriorSlide()" aria-label="Protagonista anterior">‹</button>
+        <span>{{slideActivo()+1}} / {{protagonistas().length}}</span>
+        <button type="button" (click)="siguienteSlide()" aria-label="Siguiente protagonista">›</button>
+        <a class="cinema-button cinema-button--gold" [routerLink]="protagonistas()[slideActivo()].destino">Conocer más ↗</a>
+      </div>
+      <div class="cinema-hero__actions" *ngIf="!protagonistas().length">
         <a class="cinema-button cinema-button--gold" [routerLink]="rutas.artistas">Explorar artistas <span aria-hidden="true">↗</span></a>
         <a class="cinema-button cinema-button--outline" [routerLink]="rutas.eventos">Ver eventos <span aria-hidden="true">→</span></a>
       </div>
