@@ -25,7 +25,7 @@
       <div><p class="cinema-eyebrow">CONOCE A SUS PROTAGONISTAS</p><h2 id="titulo-artistas">Artistas destacados</h2></div>
       <a [routerLink]="rutas.artistas">Ver artistas <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().artistas === 'json' && demo() as contenido">
+    <div class="cinema-rail cinema-rail--four" *ngIf="fuentes.fuentes().artistas === 'json' && demo() as contenido">
       <article class="cinema-tile cinema-tile--artist" *ngFor="let artista of contenido.artistas">
         <div class="cinema-tile__media"><img [src]="artista.fotoUrl" [alt]="artista.nombre" loading="lazy"><span class="cinema-pill">DEMO</span></div>
         <div class="cinema-tile__body"><h3>{{artista.nombre}}</h3><p>{{artista.disciplina}} · {{artista.provincia}}</p></div>
