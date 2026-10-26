@@ -29,6 +29,9 @@ import { AvisosService } from '../core/avisos.service';
           <li><a routerLink="/admin/consagrados" routerLinkActive="activo">Artistas consagrados</a></li>
           <li><a routerLink="/admin/destacados" routerLinkActive="activo">Destacados</a></li>
           @if (auth.esPrincipal()) {
+            <li><a routerLink="/admin/cargar-datos" routerLinkActive="activo">Cargar datos</a></li>
+          }
+          @if (auth.esPrincipal()) {
             <li><a routerLink="/admin/cuentas" routerLinkActive="activo">Cuentas de acceso</a></li>
           }
         </ul>

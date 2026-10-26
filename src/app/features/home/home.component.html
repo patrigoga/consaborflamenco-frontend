@@ -25,9 +25,16 @@
       <div><p class="cinema-eyebrow">CONOCE A SUS PROTAGONISTAS</p><h2 id="titulo-artistas">Artistas destacados</h2></div>
       <a [routerLink]="rutas.artistas">Ver artistas <span aria-hidden="true">→</span></a>
     </div>
-    <p *ngIf="cargando()" class="cinema-status" role="status">Cargando artistas…</p>
-    <p *ngIf="error()" class="cinema-status" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
-    <div class="cinema-rail" *ngIf="artistas().length">
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().artistas === 'json' && demo() as contenido">
+      <article class="cinema-tile cinema-tile--artist" *ngFor="let artista of contenido.artistas">
+        <div class="cinema-tile__media"><img [src]="artista.fotoUrl" [alt]="artista.nombre" loading="lazy"><span class="cinema-pill">DEMO</span></div>
+        <div class="cinema-tile__body"><h3>{{artista.nombre}}</h3><p>{{artista.disciplina}} · {{artista.provincia}}</p></div>
+      </article>
+    </div>
+    <p *ngIf="fuentes.fuentes().artistas === 'json' && !demo()" class="cinema-status">No se pudo cargar el JSON de ejemplo.</p>
+    <p *ngIf="fuentes.fuentes().artistas === 'bd' && cargando()" class="cinema-status" role="status">Cargando artistas…</p>
+    <p *ngIf="fuentes.fuentes().artistas === 'bd' && error()" class="cinema-status" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().artistas === 'bd' && artistas().length">
       <article class="cinema-tile cinema-tile--artist" *ngFor="let artista of artistas()">
         <div class="cinema-tile__media">
           <img *ngIf="artista.fotoUrl" [src]="artista.fotoUrl" [alt]="'Fotografía de ' + artista.nombre" loading="lazy">
@@ -36,7 +43,7 @@
         <div class="cinema-tile__body"><h3>{{artista.nombre}}</h3><p>{{artista.disciplina}} · {{artista.provincia}}</p></div>
       </article>
     </div>
-    <div class="cinema-empty" *ngIf="!cargando() && !error() && artistas().length === 0">
+    <div class="cinema-empty" *ngIf="fuentes.fuentes().artistas === 'bd' && !cargando() && !error() && artistas().length === 0">
       <strong>Próximamente: nuestros primeros artistas</strong>
       <p>Estamos preparando los perfiles de la comunidad flamenca.</p>
       <a [routerLink]="rutas.artistas">Explorar la sección de artistas →</a>
@@ -48,10 +55,17 @@
       <div><p class="cinema-eyebrow">LA AGENDA DEL FLAMENCO</p><h2 id="titulo-eventos">Próximos eventos</h2></div>
       <a [routerLink]="rutas.eventos">Ver agenda <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail">
-      <a class="cinema-tile cinema-tile--event cinema-tile--red" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✺</span></div><div class="cinema-tile__body"><h3>Espectáculos</h3><p>Encuentra actuaciones flamencas</p></div></a>
-      <a class="cinema-tile cinema-tile--event cinema-tile--amber" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">♫</span></div><div class="cinema-tile__body"><h3>Recitales</h3><p>Voces y guitarras por descubrir</p></div></a>
-      <a class="cinema-tile cinema-tile--event cinema-tile--purple" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✧</span></div><div class="cinema-tile__body"><h3>Festivales</h3><p>La programación, en un solo lugar</p></div></a>
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().eventos === 'json' && demo() as contenido">
+      <a class="cinema-tile cinema-tile--event" *ngFor="let item of contenido.eventos" [routerLink]="rutas.eventos">
+        <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
+        <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
+      </a>
+    </div>
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().eventos === 'bd'">
+      <a class="cinema-tile cinema-tile--event" [routerLink]="rutas.eventos" *ngFor="let tipo of ['Espectáculos', 'Recitales', 'Festivales']">
+        <div class="cinema-tile__media cinema-tile--red"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✺</span></div>
+        <div class="cinema-tile__body"><h3>{{tipo}}</h3><p>Consulta la agenda flamenca</p></div>
+      </a>
     </div>
   </section>
 
@@ -60,7 +74,13 @@
       <div><p class="cinema-eyebrow">APRENDE Y COMPARTE</p><h2 id="titulo-cursos">Cursos y academias</h2></div>
       <a [routerLink]="rutas.academias">Ver academias <span aria-hidden="true">→</span></a>
     </div>
-    <a class="cinema-feature" [routerLink]="rutas.academias"><div class="cinema-feature__symbol" aria-hidden="true">✦</div><div><span class="cinema-pill">Próximamente</span><h3>Tu camino en el flamenco empieza aquí</h3><p>Descubre próximamente academias, profesores y cursos por provincia.</p><span class="cinema-feature__cta">Explorar formación →</span></div></a>
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().academias === 'json' && demo() as contenido">
+      <a class="cinema-tile" *ngFor="let item of contenido.academias" [routerLink]="rutas.academias">
+        <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
+        <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
+      </a>
+    </div>
+    <a *ngIf="fuentes.fuentes().academias === 'bd'" class="cinema-feature" [routerLink]="rutas.academias"><div class="cinema-feature__symbol" aria-hidden="true">✦</div><div><span class="cinema-pill">Próximamente</span><h3>Tu camino en el flamenco empieza aquí</h3><p>Descubre próximamente academias, profesores y cursos por provincia.</p><span class="cinema-feature__cta">Explorar formación →</span></div></a>
   </section>
 
   <section class="cinema-section" aria-labelledby="titulo-revista">
@@ -68,7 +88,13 @@
       <div><p class="cinema-eyebrow">CULTURA Y CONOCIMIENTO</p><h2 id="titulo-revista">Revista flamenca</h2></div>
       <a [routerLink]="rutas.historia">Explorar flamenco <span aria-hidden="true">→</span></a>
     </div>
-    <div class="cinema-rail cinema-rail--topics">
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().revista === 'json' && demo() as contenido">
+      <a class="cinema-tile" *ngFor="let item of contenido.revista" [routerLink]="item.ruta || rutas.historia">
+        <div class="cinema-tile__media"><img [src]="item.imagen" [alt]="item.titulo" loading="lazy"><span class="cinema-pill">DEMO</span></div>
+        <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
+      </a>
+    </div>
+    <div class="cinema-rail cinema-rail--topics" *ngIf="fuentes.fuentes().revista === 'bd'">
       <a class="cinema-topic cinema-topic--history" [routerLink]="rutas.historia"><span>HISTORIA</span><strong>Los orígenes del flamenco</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>
       <a class="cinema-topic cinema-topic--palos" [routerLink]="rutas.palos"><span>COMPÁS</span><strong>Descubre los palos del flamenco</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>
       <a class="cinema-topic cinema-topic--keys" [routerLink]="rutas.llaves"><span>LEGADO</span><strong>Las Llaves de Oro del Cante</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>

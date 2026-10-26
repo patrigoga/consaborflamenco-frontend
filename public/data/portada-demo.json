@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "nota": "Contenido ficticio para demostración visual. No representa eventos ni perfiles publicados.",
+  "artistas": [
+    {
+      "nombre": "El arte del baile",
+      "disciplina": "Baile",
+      "provincia": "Andalucía",
+      "fotoUrl": "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=85",
+      "demo": true
+    },
+    {
+      "nombre": "Voces del flamenco",
+      "disciplina": "Cante",
+      "provincia": "España",
+      "fotoUrl": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=85",
+      "demo": true
+    },
+    {
+      "nombre": "La guitarra flamenca",
+      "disciplina": "Guitarra",
+      "provincia": "Andalucía",
+      "fotoUrl": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=85",
+      "demo": true
+    },
+    {
+      "nombre": "El arte en escena",
+      "disciplina": "Baile",
+      "provincia": "España",
+      "fotoUrl": "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=800&q=85",
+      "demo": true
+    }
+  ],
+  "eventos": [
+    {
+      "titulo": "Noches de flamenco",
+      "subtitulo": "Una experiencia en directo · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=85"
+    },
+    {
+      "titulo": "Festival de arte jondo",
+      "subtitulo": "Música, baile y cultura · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=85"
+    },
+    {
+      "titulo": "Recital de guitarra",
+      "subtitulo": "La emoción de las seis cuerdas · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=85"
+    }
+  ],
+  "academias": [
+    {
+      "titulo": "Aprende a bailar flamenco",
+      "subtitulo": "Iniciación y todos los niveles · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&q=85"
+    },
+    {
+      "titulo": "Clases de guitarra",
+      "subtitulo": "Técnica y compás · DEMO",
+      "imagen": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=85"
+    }
+  ],
+  "revista": [
+    {
+      "titulo": "La historia del flamenco",
+      "subtitulo": "Cultura",
+      "ruta": "/flamenco/historia",
+      "imagen": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=85"
+    },
+    {
+      "titulo": "Los palos del flamenco",
+      "subtitulo": "Compás",
+      "ruta": "/flamenco/palos",
+      "imagen": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=85"
+    },
+    {
+      "titulo": "Las Llaves de Oro",
+      "subtitulo": "Legado",
+      "ruta": "/flamenco/llaves-de-oro",
+      "imagen": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=85"
+    }
+  ]
+}
