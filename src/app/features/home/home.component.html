@@ -1,16 +1,82 @@
-<section class="hero" aria-labelledby="titulo-portada">
-  <img class="hero-image" src="/images/portada-el-rubio-v1.webp" width="2172" height="724" alt="" fetchpriority="high" decoding="async">
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <p class="eyebrow">LA CULTURA QUE NOS UNE</p>
-      <h1 id="titulo-portada">El flamenco vive <em>aquí.</em></h1>
-      <p>Artistas, espectáculos, cursos e historia. Un espacio para descubrir y compartir nuestra cultura.</p>
+<div class="cinema-home">
+  <section class="cinema-hero" aria-labelledby="titulo-portada">
+    <img class="cinema-hero__image" src="/images/portada-el-rubio-v1.webp" width="2172" height="724" alt="" fetchpriority="high" decoding="async">
+    <div class="cinema-hero__content">
+      <p class="cinema-eyebrow">FLAMENCO · ARTISTAS · CULTURA · EVENTOS</p>
+      <h1 id="titulo-portada">El flamenco<br><em>vive aquí</em></h1>
+      <p class="cinema-hero__lead">Descubre artistas, cursos, festivales e historia del flamenco. Todo en un mismo lugar.</p>
+      <div class="cinema-hero__actions">
+        <a class="cinema-button cinema-button--gold" [routerLink]="rutas.artistas">Explorar artistas <span aria-hidden="true">↗</span></a>
+        <a class="cinema-button cinema-button--outline" [routerLink]="rutas.eventos">Ver eventos <span aria-hidden="true">→</span></a>
+      </div>
     </div>
-  </div>
-</section>
-<nav class="shortcut-wrap" aria-label="Accesos rápidos"><div class="shortcuts"><a [routerLink]="rutas.eventos">◈<span>Eventos</span></a><a [routerLink]="rutas.artistas">✦<span>Artistas</span></a><a [routerLink]="rutas.academias">◇<span>Cursos</span></a><a [routerLink]="rutas.historia">▤<span>Flamenco</span></a></div></nav>
-<section class="content" aria-labelledby="titulo-eventos"><div class="section-head"><div><p class="eyebrow">AGENDA FLAMENCA</p><h2 id="titulo-eventos">Próximos eventos</h2></div><a [routerLink]="rutas.eventos">Ver todos los eventos</a></div><div class="cards"><article class="card" *ngFor="let nombre of ['Espectáculos','Recitales','Festivales']"><div class="art"><span>PRÓXIMAMENTE</span></div><div class="card-copy"><h3>{{nombre}}</h3><p>Publicaremos aquí los próximos eventos verificados.</p></div></article></div></section>
-<section class="content alternate" aria-labelledby="titulo-artistas"><div class="section-head"><div><p class="eyebrow">COMUNIDAD FLAMENCA</p><h2 id="titulo-artistas">Artistas</h2></div><a [routerLink]="rutas.artistas">Ver todos los artistas</a></div><p *ngIf="cargando()" role="status">Cargando artistas…</p><p *ngIf="error()" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p><p *ngIf="!cargando() && !error() && artistas().length === 0">Próximamente encontrarás los primeros perfiles de artistas.</p><div class="cards" *ngIf="artistas().length"><article class="artist" *ngFor="let artista of artistas()"><div class="portrait"><img *ngIf="artista.fotoUrl" [src]="artista.fotoUrl" [alt]="'Fotografía de ' + artista.nombre" loading="lazy"><span *ngIf="!artista.fotoUrl">{{artista.disciplina}}</span></div><h3>{{artista.nombre}}</h3><small>{{artista.disciplina}} · {{artista.provincia}}</small></article></div></section>
-<section class="content" aria-labelledby="titulo-cursos"><div class="section-head"><div><p class="eyebrow">FORMACIÓN</p><h2 id="titulo-cursos">Cursos y academias</h2></div><a [routerLink]="rutas.academias">Ver todas las academias</a></div><div class="feature"><div><h3>Tu camino en el flamenco empieza aquí</h3><p>Próximamente cursos, academias y profesores por provincia.</p></div></div></section>
-<section class="content alternate" aria-labelledby="titulo-revista"><div class="section-head"><div><p class="eyebrow">CULTURA Y CONOCIMIENTO</p><h2 id="titulo-revista">La esencia del flamenco</h2></div><a [routerLink]="rutas.historia">Ver todo sobre el flamenco</a></div><div class="topics"><a [routerLink]="rutas.historia">Historia del flamenco</a><a [routerLink]="rutas.palos">Palos del flamenco</a><a [routerLink]="rutas.llaves">Llaves de Oro</a></div></section>
-<section class="cta" aria-labelledby="titulo-profesionales"><p class="eyebrow">PROFESIONALES</p><h2 id="titulo-profesionales">Tu arte merece ser descubierto.</h2><p>Muy pronto podrás publicar tu perfil y tu actividad.</p><a class="gold-btn" [routerLink]="rutas.membresias">Hazte miembro</a></section>
+  </section>
+
+  <nav class="cinema-categories" aria-label="Explorar ConSaborFlamenco">
+    <a [routerLink]="rutas.artistas">Artistas</a>
+    <a [routerLink]="rutas.eventos">Espectáculos</a>
+    <a [routerLink]="rutas.academias">Academias</a>
+    <a [routerLink]="rutas.historia">Historia</a>
+    <a [routerLink]="rutas.palos">Palos del flamenco</a>
+  </nav>
+
+  <section class="cinema-section" aria-labelledby="titulo-artistas">
+    <div class="cinema-section__heading">
+      <div><p class="cinema-eyebrow">CONOCE A SUS PROTAGONISTAS</p><h2 id="titulo-artistas">Artistas destacados</h2></div>
+      <a [routerLink]="rutas.artistas">Ver artistas <span aria-hidden="true">→</span></a>
+    </div>
+    <p *ngIf="cargando()" class="cinema-status" role="status">Cargando artistas…</p>
+    <p *ngIf="error()" class="cinema-status" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
+    <div class="cinema-rail" *ngIf="artistas().length">
+      <article class="cinema-tile cinema-tile--artist" *ngFor="let artista of artistas()">
+        <div class="cinema-tile__media">
+          <img *ngIf="artista.fotoUrl" [src]="artista.fotoUrl" [alt]="'Fotografía de ' + artista.nombre" loading="lazy">
+          <div *ngIf="!artista.fotoUrl" class="cinema-tile__placeholder" aria-hidden="true">✦</div>
+        </div>
+        <div class="cinema-tile__body"><h3>{{artista.nombre}}</h3><p>{{artista.disciplina}} · {{artista.provincia}}</p></div>
+      </article>
+    </div>
+    <div class="cinema-empty" *ngIf="!cargando() && !error() && artistas().length === 0">
+      <strong>Próximamente: nuestros primeros artistas</strong>
+      <p>Estamos preparando los perfiles de la comunidad flamenca.</p>
+      <a [routerLink]="rutas.artistas">Explorar la sección de artistas →</a>
+    </div>
+  </section>
+
+  <section class="cinema-section" aria-labelledby="titulo-eventos">
+    <div class="cinema-section__heading">
+      <div><p class="cinema-eyebrow">LA AGENDA DEL FLAMENCO</p><h2 id="titulo-eventos">Próximos eventos</h2></div>
+      <a [routerLink]="rutas.eventos">Ver agenda <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="cinema-rail">
+      <a class="cinema-tile cinema-tile--event cinema-tile--red" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✺</span></div><div class="cinema-tile__body"><h3>Espectáculos</h3><p>Encuentra actuaciones flamencas</p></div></a>
+      <a class="cinema-tile cinema-tile--event cinema-tile--amber" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">♫</span></div><div class="cinema-tile__body"><h3>Recitales</h3><p>Voces y guitarras por descubrir</p></div></a>
+      <a class="cinema-tile cinema-tile--event cinema-tile--purple" [routerLink]="rutas.eventos"><div class="cinema-tile__media"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✧</span></div><div class="cinema-tile__body"><h3>Festivales</h3><p>La programación, en un solo lugar</p></div></a>
+    </div>
+  </section>
+
+  <section class="cinema-section" aria-labelledby="titulo-cursos">
+    <div class="cinema-section__heading">
+      <div><p class="cinema-eyebrow">APRENDE Y COMPARTE</p><h2 id="titulo-cursos">Cursos y academias</h2></div>
+      <a [routerLink]="rutas.academias">Ver academias <span aria-hidden="true">→</span></a>
+    </div>
+    <a class="cinema-feature" [routerLink]="rutas.academias"><div class="cinema-feature__symbol" aria-hidden="true">✦</div><div><span class="cinema-pill">Próximamente</span><h3>Tu camino en el flamenco empieza aquí</h3><p>Descubre próximamente academias, profesores y cursos por provincia.</p><span class="cinema-feature__cta">Explorar formación →</span></div></a>
+  </section>
+
+  <section class="cinema-section" aria-labelledby="titulo-revista">
+    <div class="cinema-section__heading">
+      <div><p class="cinema-eyebrow">CULTURA Y CONOCIMIENTO</p><h2 id="titulo-revista">Revista flamenca</h2></div>
+      <a [routerLink]="rutas.historia">Explorar flamenco <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="cinema-rail cinema-rail--topics">
+      <a class="cinema-topic cinema-topic--history" [routerLink]="rutas.historia"><span>HISTORIA</span><strong>Los orígenes del flamenco</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>
+      <a class="cinema-topic cinema-topic--palos" [routerLink]="rutas.palos"><span>COMPÁS</span><strong>Descubre los palos del flamenco</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>
+      <a class="cinema-topic cinema-topic--keys" [routerLink]="rutas.llaves"><span>LEGADO</span><strong>Las Llaves de Oro del Cante</strong><span class="cinema-topic__arrow" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="cinema-join" aria-labelledby="titulo-profesionales">
+    <div><p class="cinema-eyebrow">FORMA PARTE DE LA COMUNIDAD</p><h2 id="titulo-profesionales">Tu arte merece ser descubierto.</h2><p>Un espacio para artistas, academias y amantes del flamenco.</p></div>
+    <a class="cinema-button cinema-button--gold" [routerLink]="rutas.membresias">Hazte miembro <span aria-hidden="true">↗</span></a>
+  </section>
+</div>
