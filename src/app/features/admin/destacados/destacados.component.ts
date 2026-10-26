@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ProtagonistasCabeceraComponent } from './protagonistas-cabecera.component';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, switchMap, catchError, of } from 'rxjs';
@@ -12,8 +13,9 @@ import { RetratoComponent } from '../ui/retrato.component';
 @Component({
   selector: 'adm-destacados',
   standalone: true,
-  imports: [RouterLink, RetratoComponent],
+  imports: [RouterLink, RetratoComponent, ProtagonistasCabeceraComponent],
   template: `
+    <adm-protagonistas-cabecera />
     <header class="adm-cabecera">
       <div>
         <h1 class="adm-titulo">Destacados en portada</h1>
