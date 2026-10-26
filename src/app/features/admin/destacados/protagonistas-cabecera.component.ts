@@ -9,7 +9,7 @@ import { Protagonista, ProtagonistasService, TIPOS_PROTAGONISTA, TipoProtagonist
   template: `
     <section class="adm-bloque" aria-labelledby="cabecera-protagonistas">
       <h2 id="cabecera-protagonistas">Protagonistas de la cabecera</h2>
-      <p>Selecciona un artista, un evento y un curso mediante su imagen y enlace a una ficha publicada. Solo tú, como administrador principal, puedes cambiar estos espacios.</p>
+      <p>Busca un artista publicado y márcalo como muy destacado. Solo puede haber uno en la cabecera y no altera los destacados normales.</p>
       @if (aviso()) { <p role="status">{{ aviso() }}</p> }
       <div style="padding:15px;background:#f8f3e9;color:#34240e;border-radius:8px">
         <label for="buscar-artista">Buscar artista publicado para la cabecera</label>
@@ -19,30 +19,19 @@ import { Protagonista, ProtagonistasService, TIPOS_PROTAGONISTA, TipoProtagonist
         @for (artista of candidatos(); track artista.id) {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0">
             <span>{{ artista.nombre }} · {{ artista.disciplina }} · {{ artista.provincia }}</span>
-            <button type="button" class="adm-btn" (click)="elegirArtista(artista)">Elegir</button>
+            <button type="button" class="adm-btn" [disabled]="guardando()" (click)="elegirArtista(artista)">Muy destacado</button>
           </div>
         }
         @if (busqueda.trim() && !buscando() && candidatos().length === 0) { <p>No hay artistas publicados que coincidan.</p> }
       </div>
-      @for (tipo of tipos; track tipo) {
-        <fieldset style="margin:18px 0;padding:18px;border:1px solid #d8c9b1;border-radius:8px">
-          <legend><strong>{{ etiquetas[tipo] }}</strong></legend>
-          <label style="display:block;margin:10px 0">Título
-            <input style="display:block;width:100%;padding:10px" [name]="'titulo-'+tipo" [(ngModel)]="entradas[tipo].titulo" maxlength="120">
-          </label>
-          <label style="display:block;margin:10px 0">Descripción
-            <input style="display:block;width:100%;padding:10px" [name]="'descripcion-'+tipo" [(ngModel)]="entradas[tipo].descripcion" maxlength="240">
-          </label>
-          <label style="display:block;margin:10px 0">URL HTTPS de la fotografía o cartel
-            <input style="display:block;width:100%;padding:10px" [name]="'imagen-'+tipo" [(ngModel)]="entradas[tipo].imagenUrl" placeholder="https://..." maxlength="512">
-          </label>
-          <label style="display:block;margin:10px 0">Enlace interno a la ficha
-            <input style="display:block;width:100%;padding:10px" [name]="'destino-'+tipo" [(ngModel)]="entradas[tipo].destino" placeholder="/eventos" maxlength="255">
-          </label>
-          <button type="button" class="adm-btn adm-btn--oro" [disabled]="guardando()" (click)="guardar(tipo)">Guardar {{ etiquetas[tipo].toLowerCase() }}</button>
-          <button type="button" class="adm-btn" style="margin-left:10px" [disabled]="guardando()" (click)="eliminar(tipo)">Quitar</button>
-        </fieldset>
-      }
+      <div style="margin:16px 0;padding:16px;border:1px solid #d8c9b1;border-radius:8px">
+        <strong>Artista muy destacado actual</strong>
+        <p>{{ entradas.ARTISTA.titulo || 'Todavía no hay ninguno seleccionado' }}</p>
+        @if (entradas.ARTISTA.titulo) {
+          <button type="button" class="adm-btn" [disabled]="guardando()" (click)="eliminar('ARTISTA')">Quitar muy destacado</button>
+        }
+      </div>
+      <p class="adm-nota">Evento y curso podrán seleccionarse del mismo modo cuando existan sus fichas publicadas en administración. Los valores que ya estén guardados se conservan.</p>
     </section>
   `
 })
@@ -73,7 +62,7 @@ export class ProtagonistasCabeceraComponent {
       imagenUrl: artista.fotoUrl,
       destino: '/revista/artistas'
     };
-    this.aviso.set('Artista seleccionado. Pulsa «Guardar artista principal» para publicarlo.');
+    this.guardar('ARTISTA');
   }
   readonly tipos = TIPOS_PROTAGONISTA;
   readonly etiquetas: Record<TipoProtagonista,string> = { ARTISTA: 'Artista principal', EVENTO: 'Evento principal', CURSO: 'Curso principal' };
