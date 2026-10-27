@@ -41,6 +41,11 @@ jobs:
           chmod 700 ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          # Fallar con un mensaje útil sin exponer la clave en los registros.
+          if ! ssh-keygen -y -P '' -f ~/.ssh/id_ed25519 > /dev/null 2>&1; then
+            echo "::error::CSF_DEPLOY_SSH_KEY no contiene una clave privada OpenSSH válida sin contraseña. Comprueba los saltos de línea y que sea la clave privada original."
+            exit 1
+          fi
           printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
       - name: Enviar código probado y desplegar
