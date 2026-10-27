@@ -19,7 +19,7 @@ Se necesita configurar:
 
 La clave pública correspondiente debe autorizarse en `/home/deploy/.ssh/authorized_keys`, restringiendo permisos según necesidades. La clave y la huella deben verificarse de forma segura. El usuario `deploy` necesita permisos de lectura/escritura en el checkout y sudo no interactivo para los comandos Docker usados. Configurar protección del entorno `production` y, inicialmente, aprobación manual.
 
-El script `scripts/deploy-frontend.sh` crea imagen etiquetada por commit, actualiza Compose, recrea solo frontend, hace un test HTTP local y restaura la imagen anterior si falla. No borra imágenes ni volúmenes.
+GitHub Actions empaqueta y envía el código del commit probado al VPS mediante SCP. No usa el `git fetch` del servidor (cuya llave requiere una contraseña interactiva). El script `scripts/deploy-frontend.sh` crea imagen etiquetada por commit, actualiza Compose, recrea solo frontend, hace un test HTTP local y restaura la imagen anterior si falla. No borra imágenes ni volúmenes.
 
 ## Primera activación
 1. Crear la clave SSH exclusiva de Actions y verificar su huella sin publicarla.
@@ -29,8 +29,4 @@ El script `scripts/deploy-frontend.sh` crea imagen etiquetada por commit, actual
 5. No habilitar despliegues automáticos de backend hasta disponer de un flujo separado con respaldo de base de datos, migraciones y recuperación.
 
 ## Comando manual de emergencia
-Desde el VPS:
-```bash
-cd /opt/consaborflamenco
-bash frontend/scripts/deploy-frontend.sh
-```
+Como alternativa de emergencia, desplegar manualmente con `docker build` y `docker compose`, guardando antes la imagen anterior. El script automático exige el archivo empaquetado que envía GitHub Actions.
