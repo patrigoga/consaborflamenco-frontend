@@ -32,14 +32,14 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&per_page=100" --jq '.workflow_runs[] | select(.name=="Frontend CI" and .conclusion=="success") | .id' | grep -q .
       - name: Configurar SSH
         env:
-          KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
+          KEY_B64: ${{ secrets.CSF_DEPLOY_SSH_KEY_B64 }}
           KNOWN: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
           HOST: ${{ secrets.CSF_DEPLOY_HOST }}
         run: |
-          test -n "$KEY" && test -n "$KNOWN" && test -n "$HOST"
+          test -n "$KEY_B64" && test -n "$KNOWN" && test -n "$HOST"
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
+          printf '%s' "$KEY_B64" | base64 --decode > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           # Fallar con un mensaje útil sin exponer la clave en los registros.
           if ! ssh-keygen -y -P '' -f ~/.ssh/id_ed25519 > /dev/null 2>&1; then
