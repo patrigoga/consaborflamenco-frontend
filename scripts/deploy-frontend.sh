@@ -1,56 +1,49 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Ejecutar desde el VPS. También acepta un SHA de GitHub para un despliegue reproducible.
 ROOT=/opt/consaborflamenco
+REV="${1:?Se necesita el SHA del commit}"
+[[ "$REV" =~ ^[a-f0-9]{40}$ ]] || { echo "SHA no válido" >&2; exit 2; }
 cd "$ROOT"
-NEW_REF="${1:-main}"
-cd frontend
-git fetch origin main
-if [[ "$NEW_REF" == "main" ]]; then
-  git checkout main
-  git pull --ff-only origin main
-else
-  # Solo SHA hexadecimal; no aceptar expresiones arbitrarias.
-  [[ "$NEW_REF" =~ ^[a-f0-9]{40}$ ]] || { echo "SHA inválido" >&2; exit 2; }
-  git checkout --detach "$NEW_REF"
-fi
-REV="$(git rev-parse --short=12 HEAD)"
-cd "$ROOT"
-NEW_IMAGE="consaborflamenco-frontend:auto-${REV}"
+ARCHIVE="/tmp/csf-frontend-${REV}.tgz"
+[[ -f "$ARCHIVE" ]] || { echo "Falta el código empaquetado" >&2; exit 2; }
+BUILD_DIR="$(mktemp -d /tmp/csf-frontend-build.XXXXXX)"
+trap 'rm -rf "$BUILD_DIR"; rm -f "$ARCHIVE"' EXIT
+tar -xzf "$ARCHIVE" -C "$BUILD_DIR"
+
+NEW_IMAGE="consaborflamenco-frontend:auto-${REV:0:12}"
 OLD_IMAGE="$(sudo docker inspect consaborflamenco-frontend-1 --format '{{.Config.Image}}')"
-echo "Desplegando $NEW_IMAGE; anterior: $OLD_IMAGE"
+echo "Construyendo $NEW_IMAGE"
+sudo docker build -t "$NEW_IMAGE" "$BUILD_DIR"
 
-sudo docker build -t "$NEW_IMAGE" ./frontend
-
-# El frontend se define en compose.yaml; un posible override tiene prioridad.
+# Editar exclusivamente la sección frontend y respetar cualquier override de Compose.
 FILES=(compose.yaml)
-if [[ -f compose.override.yaml ]]; then FILES+=(compose.override.yaml); fi
-for file in "${FILES[@]}"; do
-  if grep -qE '^[[:space:]]*image:[[:space:]]*consaborflamenco-frontend:' "$file"; then
-    sed -i -E "s|^([[:space:]]*image:[[:space:]]*)consaborflamenco-frontend:[^[:space:]]+|\\1$NEW_IMAGE|" "$file"
-  fi
-done
-
-restore() {
-  echo "Falló el despliegue; restaurando $OLD_IMAGE"
+[[ ! -f compose.override.yaml ]] || FILES+=(compose.override.yaml)
+update_image() {
+  local target="$1" file
   for file in "${FILES[@]}"; do
-    sed -i -E "s|^([[:space:]]*image:[[:space:]]*)consaborflamenco-frontend:[^[:space:]]+|\\1$OLD_IMAGE|" "$file"
+    if grep -qE '^[[:space:]]*image:[[:space:]]*consaborflamenco-frontend:' "$file"; then
+      sed -i -E "s|^([[:space:]]*image:[[:space:]]*)consaborflamenco-frontend:[^[:space:]]+|\\1$target|" "$file"
+    fi
   done
+}
+restore() {
+  echo "Error de despliegue. Recuperando $OLD_IMAGE"
+  update_image "$OLD_IMAGE"
   sudo docker compose up -d --no-deps --no-build --force-recreate frontend || true
 }
 trap restore ERR
+update_image "$NEW_IMAGE"
 sudo docker compose config --quiet
+EFFECTIVE="$(sudo docker compose config --format json | python3 -c 'import json,sys;print(json.load(sys.stdin)["services"]["frontend"]["image"])')"
+[[ "$EFFECTIVE" == "$NEW_IMAGE" ]] || { echo "Compose apunta a $EFFECTIVE, no a $NEW_IMAGE" >&2; false; }
 sudo docker compose up -d --no-deps --no-build --force-recreate frontend
 
-# Comprobar respuesta HTTP de Angular SSR antes de declarar éxito.
 OK=0
-for n in 1 2 3 4 5 6 7 8 9 10; do
-  if sudo docker compose exec -T frontend node -e "fetch('http://127.0.0.1:4000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
-    OK=1; break
-  fi
-  sleep 3
+for n in {1..12}; do
+  if sudo docker compose exec -T frontend node -e "fetch('http://127.0.0.1:4000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then OK=1; break; fi
+  sleep 4
 done
-if [[ "$OK" != 1 ]]; then false; fi
+[[ "$OK" == 1 ]] || { echo "Angular SSR no respondió" >&2; false; }
 trap - ERR
-echo "Frontend operativo: $NEW_IMAGE"
+echo "Despliegue verificado: $NEW_IMAGE"
