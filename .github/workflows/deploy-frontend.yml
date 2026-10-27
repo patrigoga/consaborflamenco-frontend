@@ -1,0 +1,56 @@
+name: Deploy frontend VPS
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Frontend CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consaborflamenco-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Comprobar credenciales SSH
+        id: credentials
+        env:
+          SSH_KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.CSF_DEPLOY_HOST }}
+          SSH_KNOWN_HOSTS: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          if [[ -n "$SSH_KEY" && -n "$SSH_HOST" && -n "$SSH_KNOWN_HOSTS" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Falta configurar la conexión SSH; se omite el despliegue."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.credentials.outputs.ready == 'true'
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - name: Preparar SSH
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          SSH_KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Desplegar frontend y verificar estado
+        if: steps.credentials.outputs.ready == 'true'
+        env:
+          SSH_HOST: ${{ secrets.CSF_DEPLOY_HOST }}
+        run: |
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -i ~/.ssh/id_ed25519 "deploy@$SSH_HOST" 'bash -s --' < scripts/deploy-frontend.sh
