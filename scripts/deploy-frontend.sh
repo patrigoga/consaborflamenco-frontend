@@ -12,9 +12,9 @@ trap 'rm -rf "$BUILD_DIR"; rm -f "$ARCHIVE"' EXIT
 tar -xzf "$ARCHIVE" -C "$BUILD_DIR"
 
 NEW_IMAGE="consaborflamenco-frontend:auto-${REV:0:12}"
-OLD_IMAGE="$(sudo docker inspect consaborflamenco-frontend-1 --format '{{.Config.Image}}')"
+OLD_IMAGE="$(docker inspect consaborflamenco-frontend-1 --format '{{.Config.Image}}')"
 echo "Construyendo $NEW_IMAGE"
-sudo docker build -t "$NEW_IMAGE" "$BUILD_DIR"
+docker build -t "$NEW_IMAGE" "$BUILD_DIR"
 
 # Editar exclusivamente la sección frontend y respetar cualquier override de Compose.
 FILES=(compose.yaml)
@@ -30,18 +30,18 @@ update_image() {
 restore() {
   echo "Error de despliegue. Recuperando $OLD_IMAGE"
   update_image "$OLD_IMAGE"
-  sudo docker compose up -d --no-deps --no-build --force-recreate frontend || true
+  docker compose up -d --no-deps --no-build --force-recreate frontend || true
 }
 trap restore ERR
 update_image "$NEW_IMAGE"
-sudo docker compose config --quiet
-EFFECTIVE="$(sudo docker compose config --format json | python3 -c 'import json,sys;print(json.load(sys.stdin)["services"]["frontend"]["image"])')"
+docker compose config --quiet
+EFFECTIVE="$(docker compose config --format json | python3 -c 'import json,sys;print(json.load(sys.stdin)["services"]["frontend"]["image"])')"
 [[ "$EFFECTIVE" == "$NEW_IMAGE" ]] || { echo "Compose apunta a $EFFECTIVE, no a $NEW_IMAGE" >&2; false; }
-sudo docker compose up -d --no-deps --no-build --force-recreate frontend
+docker compose up -d --no-deps --no-build --force-recreate frontend
 
 OK=0
 for n in {1..12}; do
-  if sudo docker compose exec -T frontend node -e "fetch('http://127.0.0.1:4000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then OK=1; break; fi
+  if docker compose exec -T frontend node -e "fetch('http://127.0.0.1:4000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then OK=1; break; fi
   sleep 4
 done
 [[ "$OK" == 1 ]] || { echo "Angular SSR no respondió" >&2; false; }
