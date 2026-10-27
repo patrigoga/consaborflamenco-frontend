@@ -19,38 +19,35 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Comprobar credenciales SSH
-        id: credentials
-        env:
-          SSH_KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
-          SSH_HOST: ${{ secrets.CSF_DEPLOY_HOST }}
-          SSH_KNOWN_HOSTS: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
-        run: |
-          if [[ -n "$SSH_KEY" && -n "$SSH_HOST" && -n "$SSH_KNOWN_HOSTS" ]]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Falta configurar la conexión SSH; se omite el despliegue."
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-          fi
-      - uses: actions/checkout@v4
-        if: steps.credentials.outputs.ready == 'true'
+      - name: Checkout probado
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-      - name: Preparar SSH
-        if: steps.credentials.outputs.ready == 'true'
+      - name: Verificar que commit tiene pruebas aprobadas
         env:
-          SSH_KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          SHA="$(git rev-parse HEAD)"
+          # Para la ejecución manual, exigir también el CI del commit seleccionado.
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&per_page=100" --jq '.workflow_runs[] | select(.name=="Frontend CI" and .conclusion=="success") | .id' | grep -q .
+      - name: Configurar SSH
+        env:
+          KEY: ${{ secrets.CSF_DEPLOY_SSH_KEY }}
+          KNOWN: ${{ secrets.CSF_DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ secrets.CSF_DEPLOY_HOST }}
+        run: |
+          test -n "$KEY" && test -n "$KNOWN" && test -n "$HOST"
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-      - name: Desplegar frontend y verificar estado
-        if: steps.credentials.outputs.ready == 'true'
+      - name: Enviar código probado y desplegar
         env:
-          SSH_HOST: ${{ secrets.CSF_DEPLOY_HOST }}
+          HOST: ${{ secrets.CSF_DEPLOY_HOST }}
         run: |
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -i ~/.ssh/id_ed25519 "deploy@$SSH_HOST" 'bash -s --' < scripts/deploy-frontend.sh
+          SHA="$(git rev-parse HEAD)"
+          tar -czf "/tmp/csf-frontend-$SHA.tgz" --exclude=.git .
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -i ~/.ssh/id_ed25519 "/tmp/csf-frontend-$SHA.tgz" "deploy@$HOST:/tmp/"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -i ~/.ssh/id_ed25519 "deploy@$HOST" "bash -s -- '$SHA'" < scripts/deploy-frontend.sh
