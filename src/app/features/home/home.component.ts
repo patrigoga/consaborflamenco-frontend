@@ -30,6 +30,7 @@ export class HomeComponent {
     // No hacemos peticiones a la API durante el prerender/SSR.
     // La consulta se ejecuta solo en el navegador tras el renderizado.
     afterNextRender(() => {
+      this.fuentes.cargar().subscribe({ error: () => this.fuentes.error.set('No se pudo cargar la configuración pública.') });
       this.protagonistasApi.listar().subscribe({next: items => {this.protagonistas.set(items);this.slideActivo.set(0);}, error:()=>this.protagonistas.set([])});
       this.http.get<PortadaDemo>('/data/portada-demo.json').subscribe({next: data => this.demo.set(data), error: () => this.demo.set(null)});
       this.artistasService.listar().subscribe({
