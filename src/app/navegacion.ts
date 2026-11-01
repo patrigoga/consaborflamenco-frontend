@@ -70,7 +70,7 @@ export const NAVEGACION: ElementoNav[] = [
   enlace('contacto')
 ];
 
-export const MEMBRESIA: EnlaceNav = enlace('membresias');
+export const MEMBRESIA: EnlaceNav = { texto: 'Hazte miembro', ruta: '/registro' };
 
 export const esGrupo = (e: ElementoNav): e is GrupoNav => 'hijos' in e;
 
