@@ -53,6 +53,7 @@ export const routes: Routes = [
       seccion('servicios', () => import('./paginas/generales/servicios.page').then(m => m.ServiciosPage)),
       seccion('contacto', () => import('./paginas/generales/contacto.page').then(m => m.ContactoPage)),
       seccion('membresias', () => import('./paginas/generales/membresias.page').then(m => m.MembresiasPage)),
+      { path: 'registro', title: 'Registro profesional – ConSaborFlamenco', data: { noindex: true }, loadComponent: () => import('./paginas/generales/registro-profesional.page').then(m => m.RegistroProfesionalComponent) },
       {
         path: '**', title: 'Página no encontrada',
         data: { noindex: true, descripcion: 'La página que buscas no existe en ConSaborFlamenco.' } satisfies DatosSeo,
