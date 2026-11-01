@@ -10,6 +10,8 @@ export const serverRoutes: ServerRoute[] = [
   // /flamenco y /revista redirigen a su primera sección.
   { path: 'flamenco', renderMode: RenderMode.Server },
   { path: 'revista', renderMode: RenderMode.Server },
+  // Registro preliminar: ruta pública válida, sin habilitar las altas ni indexarla.
+  { path: 'registro', renderMode: RenderMode.Server, status: 200 },
   // Cualquier otra dirección: página 404 con código HTTP 404 real.
   { path: '**', renderMode: RenderMode.Server, status: 404 }
 ];
