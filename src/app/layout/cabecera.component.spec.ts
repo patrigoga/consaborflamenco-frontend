@@ -26,7 +26,7 @@ describe('CabeceraComponent', () => {
     const hrefs = [...el.querySelectorAll('a')].map(a => a.getAttribute('href'));
     expect(hrefs).toEqual(expect.arrayContaining(['/', '/flamenco/historia', '/flamenco/palos', '/flamenco/llaves-de-oro',
       '/revista/artistas', '/revista/academias', '/revista/fotografia', '/revista/moda', '/revista/penas', '/revista/tablaos',
-      '/revista/festivales', '/eventos', '/servicios', '/contacto', '/membresias']));
+      '/revista/festivales', '/eventos', '/servicios', '/contacto', '/registro']));
     expect(hrefs.some(h => h?.startsWith('#'))).toBe(false);
   });
 
