@@ -3,6 +3,7 @@ import { HomeComponent } from './features/home/home.component';
 import { LayoutPublicoComponent } from './layout/layout-publico.component';
 import { ClaveSeccion, SECCIONES } from './navegacion';
 import { DatosSeo } from './seo/seo-title.strategy';
+import { perfilArtistaResolver } from './features/artistas/perfil-artista.resolver';
 
 /** Ruta de una sección: URL, título y descripción salen de navegacion.ts. */
 function seccion(clave: ClaveSeccion, loadComponent: Route['loadComponent']): Route {
@@ -41,6 +42,7 @@ export const routes: Routes = [
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'artistas' },
           seccion('artistas', () => import('./paginas/revista/artistas.page').then(m => m.ArtistasPage)),
+          { path: 'artistas/:slug', title: 'Perfil de artista', resolve: { ficha: perfilArtistaResolver }, loadComponent: () => import('./features/artistas/perfil-artista.page').then(m => m.PerfilArtistaPage) },
           seccion('academias', () => import('./paginas/revista/academias.page').then(m => m.AcademiasPage)),
           seccion('fotografia', () => import('./paginas/revista/fotografia.page').then(m => m.FotografiaPage)),
           seccion('moda', () => import('./paginas/revista/moda.page').then(m => m.ModaPage)),
@@ -54,6 +56,7 @@ export const routes: Routes = [
       seccion('contacto', () => import('./paginas/generales/contacto.page').then(m => m.ContactoPage)),
       seccion('membresias', () => import('./paginas/generales/membresias.page').then(m => m.MembresiasPage)),
       { path: 'registro', title: 'Registro profesional – ConSaborFlamenco', data: { noindex: true }, loadComponent: () => import('./paginas/generales/registro-profesional.page').then(m => m.RegistroProfesionalComponent) },
+      { path: 'vista-previa/artista', title: 'Diseño del perfil de artista', data: { noindex: true }, loadComponent: () => import('./features/artistas/perfil-preview.page').then(m => m.PerfilPreviewPage) },
       {
         path: '**', title: 'Página no encontrada',
         data: { noindex: true, descripcion: 'La página que buscas no existe en ConSaborFlamenco.' } satisfies DatosSeo,

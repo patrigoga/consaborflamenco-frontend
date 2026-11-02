@@ -41,13 +41,13 @@
     <p *ngIf="fuentes.fuentes().artistas === 'bd' && cargando()" class="cinema-status" role="status">Cargando artistas…</p>
     <p *ngIf="fuentes.fuentes().artistas === 'bd' && error()" class="cinema-status" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
     <div class="cinema-rail" *ngIf="fuentes.fuentes().artistas === 'bd' && artistas().length">
-      <article class="cinema-tile cinema-tile--artist" *ngFor="let artista of artistas()">
+      <a class="cinema-tile cinema-tile--artist" *ngFor="let artista of artistas()" [routerLink]="['/revista/artistas', artista.slug]" [attr.aria-label]="'Ver perfil de ' + artista.nombre">
         <div class="cinema-tile__media">
           <img *ngIf="artista.fotoUrl" [src]="artista.fotoUrl" [alt]="'Fotografía de ' + artista.nombre" loading="lazy">
           <div *ngIf="!artista.fotoUrl" class="cinema-tile__placeholder" aria-hidden="true">✦</div>
         </div>
         <div class="cinema-tile__body"><h3>{{artista.nombre}}</h3><p>{{artista.disciplina}} · {{artista.provincia}}</p></div>
-      </article>
+      </a>
     </div>
     <div class="cinema-empty" *ngIf="fuentes.fuentes().artistas === 'bd' && !cargando() && !error() && artistas().length === 0">
       <strong>Próximamente: nuestros primeros artistas</strong>

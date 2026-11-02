@@ -53,4 +53,22 @@ a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid #cda
 .pag-404__enlaces a:not(.gold-btn){color:#8f672d;text-decoration:underline;text-underline-offset:4px}
 .pag-404__enlaces .gold-btn{margin-top:0}
 @media(max-width:760px){.pag-cab{padding:30px 20px 36px}.pag-cuerpo{width:calc(100% - 40px);padding:32px 0 64px}.pag-vacio{padding:24px 20px}.pag-filtros label{flex:1 1 100%}.section-head{flex-wrap:wrap}}
+
+/* Catálogo de artistas: continuidad con la portada cinematográfica. */
+csf-pagina-artistas{display:block;background:#100f0e;color:#f6edde}
+csf-pagina-artistas .pag-filtros label,csf-pagina-artistas .pag-recuento,csf-pagina-artistas .pag-nota{color:#cbb99f}
+csf-pagina-artistas .pag-filtros select{background:#201b15;border-color:#695238;color:#eddfca;color-scheme:dark}
+csf-pagina-artistas .pag-artistas{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+csf-pagina-artistas .artist{background:#1c1814;border:1px solid #443222;box-shadow:none;transition:transform .18s,border-color .18s}
+csf-pagina-artistas .artist:hover{transform:translateY(-4px);border-color:#bb9051}
+.pag-artistas__enlace{display:block;height:100%;color:inherit}
+csf-pagina-artistas .portrait{height:300px;background:radial-gradient(ellipse at 80% 20%,#765334,#211912 80%);letter-spacing:.1em}
+csf-pagina-artistas .portrait img{object-position:center top}
+csf-pagina-artistas .artist small{color:#c4b297}
+.pag-artistas__ver{display:block;margin:0 20px 22px;font-size:12px;color:#e6bf7e}
+csf-pagina-artistas .pag-paginas{color:#d7c6aa}
+csf-pagina-artistas .pag-paginas button{background:#241c14;border-color:#775936;color:#f0d7af;min-height:44px}
+@media(min-width:761px) and (max-width:1050px){csf-pagina-artistas .pag-artistas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){csf-pagina-artistas .pag-artistas{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}csf-pagina-artistas .portrait{height:210px}csf-pagina-artistas .pag-artistas__nombre{font-size:21px;margin:14px 14px 9px}csf-pagina-artistas .artist small,.pag-artistas__ver{margin-left:14px;margin-right:14px}csf-pagina-artistas .pag-paginas{gap:10px;font-size:12px}csf-pagina-artistas .pag-paginas button{padding:9px 12px}}
+@media(max-width:420px){csf-pagina-artistas .pag-artistas{grid-template-columns:1fr}csf-pagina-artistas .portrait{height:300px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
