@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { NOMBRE_SITIO, SITIO_URL } from '../navegacion';
+import type { FichaArtista } from '../features/artistas/perfil-artista.resolver';
 
 export interface DatosSeo {
   descripcion?: string;
@@ -26,7 +27,14 @@ export class SeoTitleStrategy extends TitleStrategy {
   override updateTitle(estado: RouterStateSnapshot): void {
     const base = this.buildTitle(estado);
     const ruta = this.rutaMasProfunda(estado.root);
-    const datos = ruta.data as DatosSeo;
+    let datos = ruta.data as DatosSeo;
+    const ficha = ruta.data['ficha'] as FichaArtista | undefined;
+    if (ficha?.artista) {
+      const a = ficha.artista;
+      datos = { ...datos, tituloCompleto: `${a.nombre} | ${NOMBRE_SITIO}`, descripcion: a.biografia?.trim().slice(0, 160) || `${a.nombre}, ${a.disciplina} en ${a.provincia}. Conoce su trayectoria en ConSaborFlamenco.` };
+    } else if (ficha) {
+      datos = { ...datos, tituloCompleto: ficha.estado === 'no-encontrado' ? `Perfil no disponible | ${NOMBRE_SITIO}` : `Perfil temporalmente no disponible | ${NOMBRE_SITIO}`, noindex: true };
+    }
     const path = estado.url.split(/[?#]/)[0] || '/';
 
     if (path.startsWith('/admin')) {

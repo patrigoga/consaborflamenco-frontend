@@ -29,6 +29,7 @@ describe('Página de artistas', () => {
     req.flush({ content: [{ id: 1, nombre: 'Ana', slug: 'ana', disciplina: 'Baile', provincia: 'Cádiz', fotoUrl: null, destacado: false }], totalElements: 13, totalPages: 2 });
     harness.detectChanges();
     expect(harness.routeNativeElement!.textContent).toContain('Ana');
+    expect(harness.routeNativeElement!.querySelector('a[href="/revista/artistas/ana"]')).not.toBeNull();
     expect(harness.routeNativeElement!.textContent).toContain('Página 2 de 2');
   });
 

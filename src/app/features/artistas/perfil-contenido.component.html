@@ -1,0 +1,115 @@
+<article class="perfil">
+  <header class="perfil-hero">
+    @if (imagenSegura(perfil.portada || perfil.fotoUrl); as imagen) {
+      <img class="perfil-hero__imagen" [src]="imagen" alt="" fetchpriority="high">
+    }
+    <div class="perfil-hero__contenido">
+      <a class="perfil-volver" routerLink="/revista/artistas">← Explorar artistas</a>
+      <p class="perfil-ceja">{{ perfil.disciplina }} <span aria-hidden="true">/</span> {{ perfil.provincia }}</p>
+      <h1>{{ perfil.nombre }}</h1>
+      @if (perfil.frase) { <p class="perfil-frase">{{ perfil.frase }}</p> }
+      <div class="perfil-acciones">
+        @if (perfil.videos.length) { <a class="perfil-boton perfil-boton--oro" href="#perfil-videos">▶ Ver vídeos</a> }
+        @if (perfil.actuaciones.length) { <a class="perfil-boton" href="#perfil-actuaciones">Próximas actuaciones ↗</a> }
+        @if (!perfil.videos.length && !perfil.actuaciones.length) { <a class="perfil-boton perfil-boton--oro" href="#perfil-trayectoria">Conoce su trayectoria ↓</a> }
+      </div>
+    </div>
+    <span class="perfil-hero__sello">{{ muestra ? 'PERFIL DE MUESTRA' : 'COMUNIDAD FLAMENCA' }}</span>
+  </header>
+
+  <nav class="perfil-nav" aria-label="Secciones del artista">
+    <a href="#perfil-trayectoria">Trayectoria</a>
+    @if (perfil.imagenes.length) { <a href="#perfil-imagenes">Imágenes</a> }
+    @if (perfil.videos.length) { <a href="#perfil-videos">Vídeos</a> }
+    @if (perfil.discos.length) { <a href="#perfil-discos">Discografía</a> }
+    @if (perfil.actuaciones.length) { <a href="#perfil-actuaciones">Actuaciones</a> }
+    @if (perfil.redes.length) { <a href="#perfil-redes">Redes y contacto</a> }
+  </nav>
+
+  <div class="perfil-cuerpo">
+    <section id="perfil-trayectoria" class="perfil-bio" aria-labelledby="titulo-trayectoria">
+      <div><p class="perfil-ceja">DE CERCA</p><h2 id="titulo-trayectoria">Raíces, camino<br>y personalidad.</h2></div>
+      <div><p class="perfil-biografia">{{ perfil.biografia || 'Este artista todavía no ha añadido su biografía.' }}</p>
+        @if (muestra) { <p class="perfil-nota">Contenido de demostración. Las imágenes son referencias visuales.</p> }
+      </div>
+    </section>
+
+    @if (perfil.imagenes.length) {
+      <section id="perfil-imagenes" aria-labelledby="titulo-imagenes">
+        <div class="perfil-titulo"><div><p class="perfil-ceja">DENTRO Y FUERA DEL ESCENARIO</p><h2 id="titulo-imagenes">En imágenes</h2></div><span>{{ perfil.imagenes.length }} fotografías</span></div>
+        <div class="perfil-galeria">
+          @for (imagen of perfil.imagenes; track imagen.id) {
+            <figure>
+              <button type="button" (click)="fotoGrande.src = imagenSegura(imagen.url) || ''; fotoGrande.alt = imagen.titulo; pieFoto.textContent = imagen.titulo + (imagen.credito ? ' · ' + imagen.credito : ''); visor.showModal()" [attr.aria-label]="'Ampliar ' + imagen.titulo">
+                @if (imagenSegura(imagen.url); as url) { <img [src]="url" [alt]="imagen.titulo" loading="lazy"> }
+                <span aria-hidden="true">↗</span>
+              </button>
+              <figcaption>{{ imagen.titulo }} @if (imagen.credito) { <small>{{ imagen.credito }}</small> }</figcaption>
+            </figure>
+          }
+        </div>
+      </section>
+    }
+    @if (perfil.videos.length) {
+      <section id="perfil-videos" aria-labelledby="titulo-videos">
+        <div class="perfil-titulo"><div><p class="perfil-ceja">EL ARTE SE ESCUCHA Y SE SIENTE</p><h2 id="titulo-videos">En primera fila</h2></div><span>YouTube</span></div>
+        <div class="perfil-videos">
+          @for (video of perfil.videos; track video.id) {
+            <article class="perfil-video">
+              <div class="perfil-video__pantalla">
+                @if (idYoutube(video.url); as id) {
+                  @if (reproductores.get(id); as reproductor) {
+                    <iframe [src]="reproductor" [title]="video.titulo" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                  } @else {
+                    <button type="button" (click)="reproducir(video.url)" [attr.aria-label]="'Reproducir ' + video.titulo + ' en YouTube'"><span class="perfil-play" aria-hidden="true">▶</span><span>Cargar vídeo de YouTube</span><small>Al reproducirlo conectarás con YouTube.</small></button>
+                  }
+                } @else { <div class="perfil-video__ejemplo"><span class="perfil-play" aria-hidden="true">▶</span><span>Tu vídeo, aquí</span><small>Añade un enlace de YouTube en el editor.</small></div> }
+              </div>
+              <h3>{{ video.titulo }}</h3>
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @if (perfil.discos.length) {
+      <section id="perfil-discos" aria-labelledby="titulo-discos">
+        <div class="perfil-titulo"><div><p class="perfil-ceja">UNA TRAYECTORIA EN CADA NOTA</p><h2 id="titulo-discos">Discografía</h2></div><span>{{ perfil.discos.length }} lanzamientos</span></div>
+        <div class="perfil-discos">
+          @for (disco of perfil.discos; track disco.id) {
+            <article class="perfil-disco"><div class="perfil-disco__portada">
+              @if (imagenSegura(disco.portada); as url) { <img [src]="url" [alt]="'Portada de ' + disco.titulo" loading="lazy"> }
+              @else { <div class="perfil-vinilo" aria-hidden="true"><span></span></div> }
+            </div><p>{{ disco.anio }}</p><h3>{{ disco.titulo }}</h3>
+              @if (enlaceSeguro(disco.enlace); as url) { <a [href]="url" target="_blank" rel="noopener noreferrer">Escuchar disco ↗</a> }
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @if (perfil.actuaciones.length) {
+      <section id="perfil-actuaciones" aria-labelledby="titulo-actuaciones">
+        <div class="perfil-titulo"><div><p class="perfil-ceja">EL ENCUENTRO CON EL PÚBLICO</p><h2 id="titulo-actuaciones">Nos vemos en directo</h2></div></div>
+        <div class="perfil-agenda">
+          @for (actuacion of perfil.actuaciones; track actuacion.id) {
+            <article><div class="perfil-fecha">@if (actuacion.fecha) { <strong>{{ actuacion.fecha | date:'dd' }}</strong><span>{{ actuacion.fecha | date:'MMM yyyy' }}</span> } @else { <strong>—</strong><span>Por anunciar</span> }</div>
+              <div class="perfil-agenda__texto"><h3>{{ actuacion.titulo }}</h3><p>{{ actuacion.lugar }} · {{ actuacion.ciudad }}</p></div>
+              @if (enlaceSeguro(actuacion.entradas); as url) { <a class="perfil-boton" [href]="url" target="_blank" rel="noopener noreferrer">Entradas ↗</a> }
+              @else { <span class="perfil-nota">{{ muestra ? 'Actuación de ejemplo' : 'Más información próximamente' }}</span> }
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @if (perfil.redes.length) {
+      <section id="perfil-redes" class="perfil-redes" aria-labelledby="titulo-redes"><div><p class="perfil-ceja">SIGUE SU CAMINO</p><h2 id="titulo-redes">Más allá del escenario</h2></div>
+        <div class="perfil-redes__enlaces">@for (red of perfil.redes; track red.id) {
+          @if (enlaceSeguro(red.url); as url) { <a [href]="url" target="_blank" rel="noopener noreferrer">{{ red.nombre }} ↗</a> }
+          @else if (muestra) { <span>{{ red.nombre }} · enlace por añadir</span> }
+        }</div>
+      </section>
+    }
+  </div>
+  <dialog #visor class="perfil-visor" aria-label="Fotografía ampliada" (click)="$event.target === visor && visor.close()">
+    <button type="button" (click)="visor.close()" aria-label="Cerrar fotografía">Cerrar ×</button><img #fotoGrande alt=""><p #pieFoto></p>
+  </dialog>
+</article>

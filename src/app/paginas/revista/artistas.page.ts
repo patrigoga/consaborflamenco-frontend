@@ -1,5 +1,5 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { REVISTA, SECCIONES } from '../../navegacion';
 import { DISCIPLINAS, PROVINCIAS } from '../../catalogos';
@@ -12,7 +12,7 @@ const POR_PAGINA = 12;
 @Component({
   selector: 'csf-pagina-artistas',
   standalone: true,
-  imports: [PaginaSeccionComponent, EnPreparacionComponent],
+  imports: [PaginaSeccionComponent, EnPreparacionComponent, RouterLink],
   template: `
     <csf-pagina-seccion [seccion]="seccion" [grupo]="grupo">
       <form class="pag-filtros" role="search" aria-label="Filtrar artistas" (submit)="$event.preventDefault()">
@@ -40,19 +40,22 @@ const POR_PAGINA = 12;
         @if (provincia() || disciplina()) {
           <csf-en-preparacion titulo="Sin resultados" texto="No hay artistas publicados con estos filtros. Prueba con otra provincia o disciplina." />
         } @else {
-          <csf-en-preparacion titulo="Aún no hay artistas publicados" texto="Muy pronto encontrarás aquí los primeros perfiles de artistas." [enlaces]="[{ texto: 'Hazte miembro', ruta: '/membresias' }]" />
+          <csf-en-preparacion titulo="Aún no hay artistas publicados" texto="Muy pronto encontrarás aquí los primeros perfiles de artistas." [enlaces]="[{ texto: 'Hazte miembro', ruta: '/registro' }]" />
         }
       } @else {
         <p class="pag-recuento" role="status">{{ total() }} {{ total() === 1 ? 'artista' : 'artistas' }}</p>
         <ul class="cards pag-artistas">
           @for (a of artistas(); track a.id) {
             <li class="artist">
+              <a class="pag-artistas__enlace" [routerLink]="['/revista/artistas', a.slug]" [attr.aria-label]="'Ver perfil de ' + a.nombre">
               <div class="portrait">
                 @if (a.fotoUrl) { <img [src]="a.fotoUrl" [alt]="'Fotografía de ' + a.nombre" loading="lazy"> }
                 @else { <span>{{ a.disciplina }}</span> }
               </div>
               <h2 class="pag-artistas__nombre">{{ a.nombre }}</h2>
               <small>{{ a.disciplina }} · {{ a.provincia }}</small>
+              <span class="pag-artistas__ver">Conocer al artista ↗</span>
+              </a>
             </li>
           }
         </ul>

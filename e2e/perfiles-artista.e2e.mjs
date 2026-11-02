@@ -1,0 +1,100 @@
+// Frontend aislado: todas las llamadas a /api se simulan. No crea ni modifica datos.
+// Arrancar el build SSR en localhost:4200 y ejecutar npm run e2e:perfiles.
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+
+const base = process.env.E2E_BASE_URL || 'http://localhost:4200';
+assert.match(base, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/);
+const salida = 'e2e/resultados/perfiles';
+mkdirSync(salida, { recursive: true });
+const navegador = await chromium.launch(process.env.E2E_CHANNEL ? { channel: process.env.E2E_CHANNEL } : {});
+const escritos = [];
+const errores = [];
+const artista = { id: 1, nombre: 'Artista de prueba', slug: 'artista-de-prueba', disciplina: 'Cante', provincia: 'Cádiz', biografia: 'Trayectoria real procedente de la API pública.', fotoUrl: null, destacado: false };
+const contexto = await navegador.newContext({ locale: 'es-ES' });
+await contexto.route('**/api/**', async ruta => {
+  const peticion = ruta.request();
+  if (peticion.method() !== 'GET') escritos.push(peticion.method() + ' ' + peticion.url());
+  const path = new URL(peticion.url()).pathname;
+  let dato = {};
+  if (path === '/api/v1/artistas') dato = { content: [artista], totalElements: 1, totalPages: 1 };
+  else if (path === '/api/v1/artistas/artista-de-prueba') dato = artista;
+  else if (path === '/api/v1/artistas/no-existe') return ruta.fulfill({ status: 404, json: {} });
+  else if (path === '/api/v1/portada/fuentes') dato = { artistas: 'bd', eventos: 'bd', academias: 'bd', revista: 'bd' };
+  else if (path === '/api/v1/portada/protagonistas' || path === '/api/v1/protagonistas') dato = [];
+  return ruta.fulfill({ json: dato });
+});
+const page = await contexto.newPage();
+page.on('pageerror', error => errores.push(error.message));
+try {
+  for (const [nombre, width, height] of [['pc', 1440, 1000], ['tablet', 820, 1100], ['movil', 390, 844], ['estrecho', 320, 740]]) {
+    await page.setViewportSize({ width, height });
+    const respuesta = await page.goto(base + '/vista-previa/artista');
+    assert.equal(respuesta.status(), 200);
+    await page.getByRole('heading', { name: 'Nombre del artista', exact: true }).waitFor();
+    assert.equal(await page.locator('meta[name=robots]').getAttribute('content'), 'noindex, follow');
+    assert.equal(await page.locator('iframe').count(), 0, 'YouTube no se carga sin pulsar reproducir');
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${nombre}: sin desbordamiento horizontal`);
+    if (width < 761) assert((await page.locator('.perfil-agenda__texto').boundingBox()).width >= 150, 'La agenda conserva espacio legible en móvil');
+    await page.screenshot({ path: `${salida}/perfil-${nombre}.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Editar perfil', exact: true }).click();
+    await page.getByRole('heading', { name: 'Mi perfil', exact: true }).waitFor();
+    await page.getByLabel('Nombre artístico', { exact: true }).fill(`Nombre editado ${nombre}`);
+    await page.getByRole('button', { name: 'Vídeos', exact: false }).click();
+    await page.getByLabel('Enlace de YouTube', { exact: true }).fill('https://www.youtube.com.ejemplo.test/watch?v=abcdefghijk');
+    await page.getByRole('button', { name: 'Aplicar a vista previa' }).click();
+    await page.getByRole('alert').first().waitFor({ state: 'visible' });
+    await page.getByLabel('Enlace de YouTube', { exact: true }).fill('https://youtu.be/abcdefghijk');
+    await page.getByRole('button', { name: 'Mi perfil', exact: false }).click();
+    assert.equal(await page.getByLabel('Nombre artístico', { exact: true }).inputValue(), `Nombre editado ${nombre}`);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${nombre}: editor sin desbordamiento`);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: `${salida}/editor-${nombre}.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Aplicar a vista previa' }).click();
+    await page.getByRole('heading', { name: `Nombre editado ${nombre}`, exact: true }).waitFor();
+    assert((await page.getByRole('status').innerText()).includes('se perderán al recargar'));
+    await page.reload();
+    await page.getByRole('heading', { name: 'Nombre del artista', exact: true }).waitFor();
+    console.log(`OK ${nombre}: ficha, editor, pestañas, validación y vista previa (${width}px)`);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(base + '/vista-previa/artista');
+  await page.getByRole('button', { name: 'Editar perfil', exact: true }).click();
+  await page.getByRole('button', { name: 'Imágenes', exact: false }).click();
+  await page.getByRole('heading', { name: 'Imágenes', exact: true }).waitFor();
+  const png = { name: 'foto-de-prueba.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aRXYAAAAASUVORK5CYII=', 'base64') };
+  await page.locator('input[type=file]').setInputFiles(png);
+  await page.getByRole('status').filter({ hasText: 'Imagen añadida' }).waitFor();
+  await page.getByLabel('Título', { exact: true }).last().fill('Mi fotografía');
+  await page.getByRole('button', { name: 'Discografía', exact: false }).click();
+  await page.getByRole('heading', { name: 'Discografía', exact: true }).waitFor();
+  await page.getByLabel('Título', { exact: true }).first().fill('Disco de prueba');
+  await page.getByRole('button', { name: 'Actuaciones', exact: false }).click();
+  await page.getByLabel('Nombre de la actuación', { exact: true }).fill('Recital de prueba');
+  await page.getByLabel('Fecha', { exact: true }).fill('2027-06-12');
+  await page.getByRole('button', { name: 'Redes y contacto', exact: false }).click();
+  await page.getByLabel('Dirección del perfil o página de contacto', { exact: true }).first().fill('https://instagram.com/artista-de-prueba');
+  await page.getByRole('button', { name: 'Aplicar a vista previa' }).click();
+  await page.getByRole('heading', { name: 'Disco de prueba', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Recital de prueba', exact: true }).waitFor();
+  assert.equal(await page.locator('#perfil-redes a').first().getAttribute('href'), 'https://instagram.com/artista-de-prueba');
+  await page.getByRole('button', { name: 'Ampliar Mi fotografía', exact: true }).click();
+  await page.locator('dialog[open]').waitFor();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('dialog[open]').count(), 0);
+  console.log('OK imágenes locales, discografía, agenda, redes y ampliación accesible de fotos');
+  await page.goto(base + '/revista/artistas');
+  await page.getByRole('link', { name: 'Ver perfil de Artista de prueba' }).click();
+  await page.getByRole('heading', { name: 'Artista de prueba', exact: true }).waitFor();
+  await page.waitForFunction(() => document.title === 'Artista de prueba | ConSaborFlamenco');
+  assert.equal(await page.title(), 'Artista de prueba | ConSaborFlamenco');
+  assert.equal(await page.locator('#perfil-discos').count(), 0, 'No se inventa una discografía en perfiles reales');
+  await page.goto(base + '/');
+  await page.getByRole('link', { name: 'Ver perfil de Artista de prueba' }).click();
+  await page.getByRole('heading', { name: 'Artista de prueba', exact: true }).waitFor();
+  assert.deepEqual(escritos, [], 'La edición de demostración nunca escribe en la API');
+  assert.deepEqual(errores, [], 'Sin errores JavaScript');
+  console.log('OK navegación desde catálogo e inicio; sin escrituras en el backend ni errores JavaScript');
+} finally { await navegador.close(); }

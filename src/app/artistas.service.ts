@@ -10,6 +10,9 @@ export class ArtistasService {
  listar(): Observable<PaginaArtistas> {
    return this.http.get<PaginaArtistas>('/api/v1/artistas?size=3');
  }
+ obtener(slug: string, origen = ''): Observable<Artista> {
+   return this.http.get<Artista>(`${origen}/api/v1/artistas/${encodeURIComponent(slug)}`);
+ }
  buscar(f: FiltroPublico): Observable<PaginaArtistas> {
    let params = new HttpParams();
    for (const [k, v] of Object.entries(f)) if (v !== undefined && v !== null && v !== '') params = params.set(k, String(v));

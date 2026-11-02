@@ -1,0 +1,74 @@
+<div class="estudio">
+  <div class="estudio-barra">
+    <div><span class="estudio-etiqueta">VISTA PREVIA</span><p>Perfil de muestra · sin publicación ni guardado en el servidor</p></div>
+    <div class="estudio-modos" aria-label="Vista del diseño">
+      <button type="button" [attr.aria-pressed]="!editando()" (click)="editando.set(false)">Ficha pública</button>
+      <button type="button" [attr.aria-pressed]="editando()" (click)="abrirEditor()">Editar perfil</button>
+    </div>
+  </div>
+  @if (aviso()) { <p class="estudio-aviso" role="status">{{ aviso() }}</p> }
+  @if (!editando()) {
+    <csf-perfil-contenido [perfil]="perfil()" [muestra]="true" />
+  } @else {
+    <div class="estudio-cabecera"><div><p class="estudio-ceja">TU ESPACIO PROFESIONAL</p><h1>Tu arte, a tu manera.</h1><p>Completa cada sección y comprueba cómo te verá el público.</p></div><span class="estudio-borrador">Demostración interactiva</span></div>
+    <div class="estudio-editor">
+      <nav class="estudio-tabs" aria-label="Secciones del editor">
+        @for (tab of pestanas; track tab.id) {
+          <button type="button" [attr.aria-pressed]="pestana() === tab.id" (click)="pestana.set(tab.id)"><span>{{ tab.nombre }}</span><small>{{ tab.detalle }}</small><b aria-hidden="true">→</b></button>
+        }
+      </nav>
+      <div class="estudio-formulario">
+        @if (error()) { <p class="estudio-error" role="alert">{{ error() }}</p> }
+        <form (submit)="$event.preventDefault(); aplicar()" (input)="error.set('')" novalidate>
+          @switch (pestana()) {
+            @case ('perfil') {
+              <div class="estudio-titulo"><p class="estudio-ceja">01 / TU IDENTIDAD</p><h2>Mi perfil</h2><p>Una presentación que hable de ti antes de que suene la primera nota.</p></div>
+              <div class="estudio-portada" [style.background-image]="'linear-gradient(90deg, #17120ed9, #17120e30), url(' + borrador.portada + ')'">
+                <span>Imagen de cabecera</span><label class="estudio-subir">Cambiar imagen<input type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirImagen($event, 'portada')"></label>
+              </div>
+              <p class="estudio-ayuda">JPG, PNG o WebP · máximo 5 MB. Solo se usa para esta vista previa.</p>
+              <div class="estudio-grid"><label>Nombre artístico<input name="nombre" [(ngModel)]="borrador.nombre" maxlength="120" autocomplete="off" required></label><label>Disciplina<select name="disciplina" [(ngModel)]="borrador.disciplina"><option>Cante</option><option>Baile</option><option>Guitarra</option><option>Percusión</option><option>Otros</option></select></label><label>Provincia<input name="provincia" [(ngModel)]="borrador.provincia" maxlength="80"></label><label>Tu frase de presentación<input name="frase" [(ngModel)]="borrador.frase" maxlength="180" placeholder="El flamenco, contado a tu manera"></label></div>
+              <label>Biografía<textarea name="biografia" [(ngModel)]="borrador.biografia" rows="8" maxlength="10000"></textarea></label>
+            }
+            @case ('imagenes') {
+              <div class="estudio-titulo"><p class="estudio-ceja">02 / TU MIRADA</p><h2>Imágenes</h2><p>Escenarios, ensayos y momentos que forman parte de tu camino.</p></div>
+              <label class="estudio-subir estudio-subir--grande">+ Añadir fotografía<input type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirImagen($event, 'galeria')"></label><p class="estudio-ayuda">Hasta 5 MB por imagen. Añade solo fotografías que tengas derecho a utilizar.</p>
+              @for (imagen of borrador.imagenes; track imagen.id) {
+                <fieldset class="estudio-item"><legend>{{ imagen.titulo || 'Fotografía' }}</legend><img class="estudio-miniatura" [src]="imagen.url" alt="Vista previa de la fotografía"><label>Título<input [name]="'imagen-titulo-' + imagen.id" [(ngModel)]="imagen.titulo" maxlength="160"></label><label>Crédito fotográfico<input [name]="'imagen-credito-' + imagen.id" [(ngModel)]="imagen.credito" maxlength="160" placeholder="Nombre del fotógrafo"></label><button type="button" class="estudio-quitar" (click)="quitar('imagenes', imagen.id)">Quitar fotografía</button></fieldset>
+              } @empty { <p class="estudio-vacio">Añade tu primera fotografía para empezar la galería.</p> }
+            }
+            @case ('videos') {
+              <div class="estudio-titulo"><p class="estudio-ceja">03 / TU ARTE EN MOVIMIENTO</p><h2>Vídeos de YouTube</h2><p>Comparte actuaciones, entrevistas o videoclips mediante sus enlaces.</p></div>
+              @for (video of borrador.videos; track video.id) {
+                <fieldset class="estudio-item"><legend>Vídeo</legend><label>Título del vídeo<input [name]="'video-titulo-' + video.id" [(ngModel)]="video.titulo" maxlength="160"></label><label>Enlace de YouTube<input type="url" [name]="'video-url-' + video.id" [(ngModel)]="video.url" placeholder="https://www.youtube.com/watch?v=…"></label>@if (video.url && !idYoutube(video.url)) { <p class="estudio-error">Este enlace no corresponde a un vídeo de YouTube válido.</p> }<button type="button" class="estudio-quitar" (click)="quitar('videos', video.id)">Quitar vídeo</button></fieldset>
+              } @empty { <p class="estudio-vacio">Tu primer vídeo puede ser una actuación o una presentación.</p> }
+              <button type="button" class="estudio-anadir" (click)="agregar('videos')">+ Añadir vídeo</button>
+            }
+            @case ('discos') {
+              <div class="estudio-titulo"><p class="estudio-ceja">04 / TU OBRA</p><h2>Discografía</h2><p>Reúne tus discos, sencillos y colaboraciones en un mismo lugar.</p></div>
+              @for (disco of borrador.discos; track disco.id) {
+                <fieldset class="estudio-item"><legend>Lanzamiento</legend><div class="estudio-grid"><label>Título<input [name]="'disco-titulo-' + disco.id" [(ngModel)]="disco.titulo" maxlength="160"></label><label>Año<input [name]="'disco-anio-' + disco.id" [(ngModel)]="disco.anio" maxlength="4" inputmode="numeric"></label></div><label>Enlace para escucharlo<input type="url" [name]="'disco-enlace-' + disco.id" [(ngModel)]="disco.enlace" placeholder="https://…"></label><label class="estudio-subir">{{ disco.portada ? 'Cambiar portada' : 'Añadir portada' }}<input type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirImagen($event, disco.id)"></label><button type="button" class="estudio-quitar" (click)="quitar('discos', disco.id)">Quitar lanzamiento</button></fieldset>
+              } @empty { <p class="estudio-vacio">Añade tus publicaciones, si las tienes. Esta sección es opcional.</p> }
+              <button type="button" class="estudio-anadir" (click)="agregar('discos')">+ Añadir lanzamiento</button>
+            }
+            @case ('actuaciones') {
+              <div class="estudio-titulo"><p class="estudio-ceja">05 / TU AGENDA</p><h2>Próximas actuaciones</h2><p>Haz que el público encuentre dónde y cuándo verte en directo.</p></div>
+              @for (actuacion of borrador.actuaciones; track actuacion.id) {
+                <fieldset class="estudio-item"><legend>Actuación</legend><label>Nombre de la actuación<input [name]="'actuacion-titulo-' + actuacion.id" [(ngModel)]="actuacion.titulo" maxlength="160"></label><div class="estudio-grid"><label>Fecha<input type="date" [name]="'actuacion-fecha-' + actuacion.id" [(ngModel)]="actuacion.fecha"></label><label>Sala, peña o festival<input [name]="'actuacion-lugar-' + actuacion.id" [(ngModel)]="actuacion.lugar" maxlength="160"></label><label>Ciudad<input [name]="'actuacion-ciudad-' + actuacion.id" [(ngModel)]="actuacion.ciudad" maxlength="100"></label><label>Enlace de entradas o información<input type="url" [name]="'actuacion-entradas-' + actuacion.id" [(ngModel)]="actuacion.entradas" placeholder="https://…"></label></div><button type="button" class="estudio-quitar" (click)="quitar('actuaciones', actuacion.id)">Quitar actuación</button></fieldset>
+              } @empty { <p class="estudio-vacio">Cuando tengas una fecha confirmada, podrás añadirla aquí.</p> }
+              <button type="button" class="estudio-anadir" (click)="agregar('actuaciones')">+ Añadir actuación</button>
+            }
+            @case ('redes') {
+              <div class="estudio-titulo"><p class="estudio-ceja">06 / SIGUE CONECTADO</p><h2>Redes y contacto</h2><p>Tus canales oficiales, juntos y sin duplicados.</p></div>
+              @for (red of borrador.redes; track red.id) {
+                <fieldset class="estudio-item"><legend>Canal oficial</legend><label>Plataforma<select [name]="'red-nombre-' + red.id" [(ngModel)]="red.nombre"><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>TikTok</option><option>Spotify</option><option>Bandcamp</option><option>Web oficial</option><option>Contacto profesional</option></select></label><label>Dirección del perfil o página de contacto<input type="url" [name]="'red-url-' + red.id" [(ngModel)]="red.url" placeholder="https://…"></label><button type="button" class="estudio-quitar" (click)="quitar('redes', red.id)">Quitar canal</button></fieldset>
+              } @empty { <p class="estudio-vacio">Añade tu web o una red social para que puedan seguirte.</p> }
+              <button type="button" class="estudio-anadir" (click)="agregar('redes')">+ Añadir canal</button>
+            }
+          }
+          <div class="estudio-pie"><p>Los cambios se aplican solo a esta demostración. Al recargar se restablece el ejemplo.</p><button type="submit" class="estudio-aplicar">Aplicar a vista previa ↗</button></div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

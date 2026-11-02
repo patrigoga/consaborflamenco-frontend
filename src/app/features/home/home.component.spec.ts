@@ -19,7 +19,7 @@ describe('Portada cinematográfica', () => {
     expect(el.querySelector('.cinema-section__heading a[href="/eventos"]')).not.toBeNull();
     expect(el.querySelector('.cinema-section__heading a[href="/revista/academias"]')).not.toBeNull();
     expect(el.querySelector('.cinema-section__heading a[href="/flamenco/historia"]')).not.toBeNull();
-    expect(el.querySelector('.cinema-join a[href="/membresias"]')).not.toBeNull();
+    expect(el.querySelector('.cinema-join a[href="/registro"]')).not.toBeNull();
     expect(links.some(href => href?.startsWith('#'))).toBe(false);
   });
 });

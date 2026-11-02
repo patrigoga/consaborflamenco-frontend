@@ -1,7 +1,7 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { SECCIONES } from '../../navegacion';
+import { MEMBRESIA, SECCIONES } from '../../navegacion';
 import { Artista, ArtistasService } from '../../artistas.service';
 import { PortadaDemo, FuentesPortadaService } from './fuentes-portada';
 import { HttpClient } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { Protagonista, ProtagonistasService } from './protagonistas.service';
 export class HomeComponent {
   readonly rutas = {
     artistas: SECCIONES.artistas.ruta, eventos: SECCIONES.eventos.ruta, academias: SECCIONES.academias.ruta,
-    historia: SECCIONES.historia.ruta, palos: SECCIONES.palos.ruta, llaves: SECCIONES.llaves.ruta, membresias: SECCIONES.membresias.ruta
+    historia: SECCIONES.historia.ruta, palos: SECCIONES.palos.ruta, llaves: SECCIONES.llaves.ruta, membresias: MEMBRESIA.ruta
   };
   readonly artistas = signal<Artista[]>([]);
   readonly cargando = signal(true);
