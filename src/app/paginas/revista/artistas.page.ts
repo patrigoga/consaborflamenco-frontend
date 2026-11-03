@@ -26,6 +26,10 @@ const POR_PAGINA = 12;
           </select>
         </label>
         <label>
+          <span>Localidad</span>
+          <input type="search" maxlength="120" [value]="localidad()" placeholder="Ej.: Montilla" (change)="filtrar('localidad', $any($event.target).value)">
+        </label>
+        <label>
           <span>Disciplina</span>
           <select (change)="filtrar('disciplina', $any($event.target).value)">
             <option value="">Todas</option>
@@ -39,7 +43,7 @@ const POR_PAGINA = 12;
       } @else if (estado() === 'error') {
         <p class="pag-nota pag-nota--error" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
       } @else if (artistas().length === 0) {
-        @if (q() || provincia() || disciplina()) {
+        @if (q() || provincia() || localidad() || disciplina()) {
           <csf-en-preparacion titulo="Sin resultados" texto="No hay artistas publicados con estos filtros. Prueba con otra provincia o disciplina." />
         } @else {
           <csf-en-preparacion titulo="Aún no hay artistas publicados" texto="Muy pronto encontrarás aquí los primeros perfiles de artistas." [enlaces]="[{ texto: 'Hazte miembro', ruta: '/registro' }]" />
@@ -55,7 +59,7 @@ const POR_PAGINA = 12;
                 @else { <span>{{ a.disciplina }}</span> }
               </div>
               <h2 class="pag-artistas__nombre">{{ a.nombre }}</h2>
-              <small>{{ a.disciplina }} · {{ a.provincia }}</small>
+              <small>{{ a.disciplina }} · {{ a.localidad ? a.localidad + ', ' : '' }}{{ a.provincia }}</small>
               <span class="pag-artistas__ver">Conocer al artista ↗</span>
               </a>
             </li>
@@ -82,6 +86,7 @@ export class ArtistasPage {
   readonly provincias = PROVINCIAS;
   readonly disciplinas = DISCIPLINAS;
   readonly provincia = signal('');
+  readonly localidad = signal('');
   readonly q = signal('');
   readonly disciplina = signal('');
   readonly pagina = signal(0);
@@ -95,6 +100,7 @@ export class ArtistasPage {
     // Como en la portada, la API solo se consulta en el navegador (no durante SSR/prerender).
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(q => {
       this.q.set((q.get('q') ?? '').slice(0,120));
+      this.localidad.set((q.get('localidad') ?? '').slice(0,120));
       this.provincia.set(PROVINCIAS.includes(q.get('provincia') ?? '') ? q.get('provincia')! : '');
       this.disciplina.set(DISCIPLINAS.includes(q.get('disciplina') ?? '') ? q.get('disciplina')! : '');
       const p = Number(q.get('pagina') ?? '1');
@@ -110,7 +116,7 @@ export class ArtistasPage {
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { q: campo?.value.trim() || null, pagina: null } });
   }
 
-  filtrar(campo: 'provincia' | 'disciplina', valor: string): void {
+  filtrar(campo: 'provincia' | 'disciplina' | 'localidad', valor: string): void {
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { [campo]: valor || null, pagina: null } });
   }
 
@@ -120,7 +126,7 @@ export class ArtistasPage {
 
   private cargar(): void {
     this.estado.set('cargando');
-    this.api.buscar({ q: this.q(), provincia: this.provincia(), disciplina: this.disciplina(), page: this.pagina(), size: POR_PAGINA }).subscribe({
+    this.api.buscar({ q: this.q(), localidad: this.localidad(), provincia: this.provincia(), disciplina: this.disciplina(), page: this.pagina(), size: POR_PAGINA }).subscribe({
       next: p => {
         this.artistas.set(p.content);
         this.total.set(p.totalElements);
