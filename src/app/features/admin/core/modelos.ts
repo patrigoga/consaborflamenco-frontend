@@ -31,6 +31,7 @@ export interface ArtistaPeticion {
   slug: string | null;
   disciplina: string;
   provincia: string;
+  localidad?: string | null;
   biografia: string | null;
   fotoUrl: string | null;
 }
