@@ -69,7 +69,7 @@ describe('ArtistaFormComponent', () => {
     componente.guardar();
     const req = backend.expectOne('/api/v1/admin/artistas');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ nombre: 'Ana', slug: null, disciplina: 'Baile', provincia: 'Sevilla', biografia: 'Bio', fotoUrl: null });
+    expect(req.request.body).toEqual({ nombre: 'Ana', slug: null, disciplina: 'Baile', provincia: 'Sevilla', biografia: 'Bio', fotoUrl: null, localidad: null });
     req.flush(ARTISTA);
     expect(navegar).toHaveBeenCalledWith(['/admin/artistas', 7], { replaceUrl: true });
     expect(componente.hayCambiosSinGuardar()).toBe(false);

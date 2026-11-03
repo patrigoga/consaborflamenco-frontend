@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-export interface Artista { id: number; nombre: string; slug: string; disciplina: string; provincia: string; biografia?: string | null; fotoUrl: string | null; destacado: boolean; }
+export interface Artista { id: number; nombre: string; slug: string; disciplina: string; provincia: string; localidad?: string | null; biografia?: string | null; fotoUrl: string | null; destacado: boolean; }
 export interface PaginaArtistas { content: Artista[]; totalElements: number; totalPages?: number; number?: number; }
-export interface FiltroPublico { provincia?: string; disciplina?: string; page?: number; size?: number; }
+export interface FiltroPublico { q?: string; provincia?: string; localidad?: string; disciplina?: string; page?: number; size?: number; }
 @Injectable({providedIn:'root'})
 export class ArtistasService {
  private readonly http = inject(HttpClient);

@@ -19,10 +19,12 @@ describe('Página de artistas', () => {
 
   it('traslada los filtros de la URL a la API pública (página en base 1 → 0)', async () => {
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/revista/artistas?provincia=C%C3%A1diz&disciplina=Baile&pagina=2');
+    await harness.navigateByUrl('/revista/artistas?provincia=C%C3%A1diz&disciplina=Baile&localidad=Jerez&q=Ana&pagina=2');
     harness.detectChanges();
     const req = backend.expectOne(r => r.url === '/api/v1/artistas');
     expect(req.request.params.get('provincia')).toBe('Cádiz');
+    expect(req.request.params.get('localidad')).toBe('Jerez');
+    expect(req.request.params.get('q')).toBe('Ana');
     expect(req.request.params.get('disciplina')).toBe('Baile');
     expect(req.request.params.get('page')).toBe('1');
     expect(req.request.params.get('size')).toBe('12');

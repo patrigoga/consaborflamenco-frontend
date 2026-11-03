@@ -15,13 +15,19 @@ const POR_PAGINA = 12;
   imports: [PaginaSeccionComponent, EnPreparacionComponent, RouterLink],
   template: `
     <csf-pagina-seccion [seccion]="seccion" [grupo]="grupo">
-      <form class="pag-filtros" role="search" aria-label="Filtrar artistas" (submit)="$event.preventDefault()">
+      <form class="pag-filtros" role="search" aria-label="Filtrar artistas" (submit)="buscarNombre($event)">
+        <label><span>Nombre artístico</span><input type="search" name="q" maxlength="120" [value]="q()" placeholder="Busca un artista" autocomplete="off"></label>
+        <button type="submit">Buscar</button>
         <label>
           <span>Provincia</span>
           <select (change)="filtrar('provincia', $any($event.target).value)">
             <option value="">Todas</option>
             @for (p of provincias; track p) { <option [value]="p" [selected]="provincia() === p">{{ p }}</option> }
           </select>
+        </label>
+        <label>
+          <span>Localidad</span>
+          <input type="search" maxlength="120" [value]="localidad()" placeholder="Ej.: Montilla" (change)="filtrar('localidad', $any($event.target).value)">
         </label>
         <label>
           <span>Disciplina</span>
@@ -37,7 +43,7 @@ const POR_PAGINA = 12;
       } @else if (estado() === 'error') {
         <p class="pag-nota pag-nota--error" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
       } @else if (artistas().length === 0) {
-        @if (provincia() || disciplina()) {
+        @if (q() || provincia() || localidad() || disciplina()) {
           <csf-en-preparacion titulo="Sin resultados" texto="No hay artistas publicados con estos filtros. Prueba con otra provincia o disciplina." />
         } @else {
           <csf-en-preparacion titulo="Aún no hay artistas publicados" texto="Muy pronto encontrarás aquí los primeros perfiles de artistas." [enlaces]="[{ texto: 'Hazte miembro', ruta: '/registro' }]" />
@@ -53,7 +59,7 @@ const POR_PAGINA = 12;
                 @else { <span>{{ a.disciplina }}</span> }
               </div>
               <h2 class="pag-artistas__nombre">{{ a.nombre }}</h2>
-              <small>{{ a.disciplina }} · {{ a.provincia }}</small>
+              <small>{{ a.disciplina }} · {{ a.localidad ? a.localidad + ', ' : '' }}{{ a.provincia }}</small>
               <span class="pag-artistas__ver">Conocer al artista ↗</span>
               </a>
             </li>
@@ -80,6 +86,8 @@ export class ArtistasPage {
   readonly provincias = PROVINCIAS;
   readonly disciplinas = DISCIPLINAS;
   readonly provincia = signal('');
+  readonly localidad = signal('');
+  readonly q = signal('');
   readonly disciplina = signal('');
   readonly pagina = signal(0);
   readonly artistas = signal<Artista[]>([]);
@@ -91,6 +99,8 @@ export class ArtistasPage {
   constructor() {
     // Como en la portada, la API solo se consulta en el navegador (no durante SSR/prerender).
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(q => {
+      this.q.set((q.get('q') ?? '').slice(0,120));
+      this.localidad.set((q.get('localidad') ?? '').slice(0,120));
       this.provincia.set(PROVINCIAS.includes(q.get('provincia') ?? '') ? q.get('provincia')! : '');
       this.disciplina.set(DISCIPLINAS.includes(q.get('disciplina') ?? '') ? q.get('disciplina')! : '');
       const p = Number(q.get('pagina') ?? '1');
@@ -100,7 +110,13 @@ export class ArtistasPage {
     afterNextRender(() => { this.navegador = true; this.cargar(); });
   }
 
-  filtrar(campo: 'provincia' | 'disciplina', valor: string): void {
+  buscarNombre(event: Event): void {
+    event.preventDefault();
+    const campo = (event.target as HTMLFormElement).elements.namedItem('q') as HTMLInputElement | null;
+    this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { q: campo?.value.trim() || null, pagina: null } });
+  }
+
+  filtrar(campo: 'provincia' | 'disciplina' | 'localidad', valor: string): void {
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'merge', queryParams: { [campo]: valor || null, pagina: null } });
   }
 
@@ -110,7 +126,7 @@ export class ArtistasPage {
 
   private cargar(): void {
     this.estado.set('cargando');
-    this.api.buscar({ provincia: this.provincia(), disciplina: this.disciplina(), page: this.pagina(), size: POR_PAGINA }).subscribe({
+    this.api.buscar({ q: this.q(), localidad: this.localidad(), provincia: this.provincia(), disciplina: this.disciplina(), page: this.pagina(), size: POR_PAGINA }).subscribe({
       next: p => {
         this.artistas.set(p.content);
         this.total.set(p.totalElements);
