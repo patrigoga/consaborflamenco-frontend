@@ -19,7 +19,7 @@ export function slugDesde(texto: string): string {
   return texto.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 170);
 }
 
-type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'biografia';
+type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'biografia';
 
 @Component({
   selector: 'adm-artista-form',
@@ -90,6 +90,12 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'biografia';
               </select>
               @if (error('provincia')) { <p id="provincia-error" class="adm-campo__error">{{ error('provincia') }}</p> }
             </div>
+          </div>
+
+          <div class="adm-campo">
+            <label for="localidad">Localidad (opcional)</label>
+            <input id="localidad" formControlName="localidad" maxlength="120" autocomplete="address-level2" placeholder="Ej.: Montilla" [attr.aria-invalid]="!!error('localidad')">
+            @if (error('localidad')) { <p class="adm-campo__error">{{ error('localidad') }}</p> }
           </div>
 
           <div class="adm-campo">
@@ -181,6 +187,7 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
     slug: ['', [Validators.maxLength(180), Validators.pattern(PATRON_SLUG)]],
     disciplina: ['', Validators.required],
     provincia: ['', Validators.required],
+    localidad: ['', Validators.maxLength(120)],
     biografia: ['', Validators.maxLength(BIOGRAFIA_MAX)]
   });
 
@@ -243,6 +250,7 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
       slug: v.slug.trim() || null,
       disciplina: v.disciplina,
       provincia: v.provincia,
+      localidad: v.localidad.trim() || null,
       biografia: v.biografia.trim() || null,
       fotoUrl: this.artista()?.fotoUrl ?? null
     };
@@ -302,7 +310,7 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
   private cargar(a: ArtistaAdmin): void {
     this.artista.set(a);
     this.form.reset({
-      nombre: a.nombre, slug: a.slug, disciplina: a.disciplina, provincia: a.provincia, biografia: a.biografia ?? ''
+      nombre: a.nombre, slug: a.slug, disciplina: a.disciplina, provincia: a.provincia, localidad: a.localidad ?? '', biografia: a.biografia ?? ''
     });
     this.erroresServidor.set({});
     this.intentado.set(false);
