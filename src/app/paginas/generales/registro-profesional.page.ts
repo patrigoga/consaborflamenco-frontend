@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
       <header>
         <p class="eyebrow">LA COMUNIDAD DEL FLAMENCO</p>
         <h1 id="registro-titulo">Crea tu perfil profesional</h1>
-        <p>Un espacio para artistas, academias, peñas y negocios flamencos.</p>
+        <p>Un espacio para artistas, academias, peñas y tiendas flamencas.</p>
       </header>
 
       <button type="button" class="google" disabled aria-describedby="registro-pendiente">
@@ -38,7 +38,7 @@ import { FormsModule } from '@angular/forms';
           <option value="ARTISTA">Artista flamenco</option>
           <option value="ACADEMIA">Academia / Escuela</option>
           <option value="ENTIDAD">Peña / Asociación flamenca</option>
-          <option value="NEGOCIO">Negocio / Empresa</option>
+          <option value="TIENDA">Tienda</option>
         </select>
 
         <div class="legal">
@@ -82,7 +82,7 @@ export class RegistroProfesionalComponent {
   nombre = '';
   email = '';
   clave = '';
-  perfil: 'ARTISTA'|'ACADEMIA'|'ENTIDAD'|'NEGOCIO' = 'ARTISTA';
+  perfil: 'ARTISTA'|'ACADEMIA'|'ENTIDAD'|'TIENDA' = 'ARTISTA';
   aceptaTerminos = false;
   comunicaciones = false;
 }
