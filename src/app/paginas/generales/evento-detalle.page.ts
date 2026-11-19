@@ -79,28 +79,28 @@ export class EventoDetallePage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly avisoCompartir = signal<string | null>(null);
 
-  private urlEvento(e: EventoPublico): string {
+  private urlEvento(): string {
     // En SSR no se accede al objeto window; la acción de compartir solo se ejecuta en navegador.
     const slug = this.ruta.snapshot.paramMap.get('slug') || '';
     return new URL('/eventos/' + encodeURIComponent(slug), window.location.origin).href;
   }
 
   facebookUrl(e: EventoPublico): string {
-    return 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(this.urlEvento(e));
+    return 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(this.urlEvento());
   }
 
   whatsappUrl(e: EventoPublico): string {
-    return 'https://api.whatsapp.com/send?text=' + encodeURIComponent(e.titulo + ' — ' + this.urlEvento(e));
+    return 'https://api.whatsapp.com/send?text=' + encodeURIComponent(e.titulo + ' — ' + this.urlEvento());
   }
 
   telegramUrl(e: EventoPublico): string {
-    return 'https://t.me/share/url?url=' + encodeURIComponent(this.urlEvento(e))
+    return 'https://t.me/share/url?url=' + encodeURIComponent(this.urlEvento())
       + '&text=' + encodeURIComponent(e.titulo);
   }
 
   async copiarEnlace(e: EventoPublico): Promise<void> {
     try {
-      await navigator.clipboard.writeText(this.urlEvento(e));
+      await navigator.clipboard.writeText(this.urlEvento());
       this.avisoCompartir.set('Enlace copiado. Puedes pegarlo en tus redes sociales.');
     } catch {
       this.avisoCompartir.set('No se pudo copiar automáticamente. Copia la dirección desde tu navegador.');
@@ -113,7 +113,7 @@ export class EventoDetallePage implements OnInit {
       return;
     }
     try {
-      await navigator.share({ title: e.titulo, text: e.titulo, url: this.urlEvento(e) });
+      await navigator.share({ title: e.titulo, text: e.titulo, url: this.urlEvento() });
       this.avisoCompartir.set(null);
     } catch (error) {
       if ((error as Error)?.name !== 'AbortError') {
