@@ -28,7 +28,8 @@ import { EventoPublico, EventosService, PaginaEventos } from '../../features/eve
         <p role="status">Cargando agenda…</p>
       } @else if (error()) {
         <p role="alert">{{ error() }} <button type="button" (click)="cargar(0)">Reintentar</button></p>
-      } @else if (pagina(); as p) {
+      } @else {
+        @if (pagina(); as p) {
         @if (!p.content.length) {
           <p>Por el momento no hay próximos eventos publicados. La agenda se actualizará con los eventos verificados.</p>
         } @else {
@@ -61,6 +62,7 @@ import { EventoPublico, EventosService, PaginaEventos } from '../../features/eve
               <button type="button" [disabled]="p.number+1 >= p.totalPages" (click)="cargar(p.number+1)">Siguiente</button>
             </nav>
           }
+        }
         }
       }
     </csf-pagina-seccion>
