@@ -94,6 +94,17 @@ import { MiembroAdmin, MiembrosAdminService, PerfilMiembro, PermisosMiembro, Reg
             <button type="button" class="adm-btn adm-btn--quieto" [disabled]="procesando()" (click)="cambiarBloqueo(u, false)">Desbloquear y activar</button>
           }
           <button type="button" class="adm-btn adm-btn--quieto" (click)="seleccionado.set(null)">Cerrar ficha</button>
+          <section class="adm-panel">
+            <h3>Zona de eliminación definitiva</h3>
+            <p class="adm-ayuda">Esta operación es irreversible. Solo podrá eliminarse la cuenta si no tiene eventos ni perfiles públicos o profesionales aprobados vinculados. Se eliminarán también sus registros de prueba dependientes.</p>
+            <label for="confirmar-eliminar">Escribe ELIMINAR para habilitar el borrado</label>
+            <input id="confirmar-eliminar" [value]="textoEliminacion()"
+                   (input)="textoEliminacion.set($any($event.target).value)"
+                   autocomplete="off" maxlength="8">
+            <button type="button" class="adm-btn adm-btn--quieto"
+                    [disabled]="procesando() || textoEliminacion() !== 'ELIMINAR'"
+                    (click)="eliminarMiembro(u)">Eliminar definitivamente esta cuenta</button>
+          </section>
         </div>
         @if (u.suspensionMotivo) {
           <p class="adm-franja"><strong>Motivo de suspensión:</strong> {{ u.suspensionMotivo }}
@@ -183,6 +194,7 @@ export class MiembrosAdminComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly passwordTemporal = signal<string | null>(null);
   readonly motivo = signal('');
+  readonly textoEliminacion = signal('');
   readonly nuevoEmail = signal('');
   readonly perfiles = signal<PerfilMiembro[]>([]);
   readonly historial = signal<RegistroAuditoriaMiembro[]>([]);
@@ -216,6 +228,7 @@ export class MiembrosAdminComponent implements OnInit {
     this.passwordTemporal.set(null);
     this.form.reset({ nombre: u.nombre, email: u.email });
     this.motivo.set('');
+    this.textoEliminacion.set('');
     this.nuevoEmail.set('');
     this.permisos.set({
       crearEventos: u.puedeCrearEventos, crearCursos: u.puedeCrearCursos,
@@ -334,6 +347,31 @@ export class MiembrosAdminComponent implements OnInit {
         this.avisos.ok('Contraseña restablecida.');
       },
       error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
+    });
+  }
+  async eliminarMiembro(u: MiembroAdmin): Promise<void> {
+    if (this.procesando() || this.textoEliminacion() !== 'ELIMINAR') return;
+    const confirmado = await this.confirmar.pedir({
+      titulo: 'Eliminar definitivamente a ' + u.nombre,
+      mensaje: 'Se borrará permanentemente la cuenta ' + u.email
+        + ' (ID ' + u.id + ') y sus registros de prueba dependientes. Esta acción no se puede deshacer.',
+      aceptar: 'Eliminar definitivamente',
+      peligro: true
+    });
+    if (!confirmado) return;
+    this.procesando.set(true);
+    this.api.eliminar(u.id).subscribe({
+      next: () => {
+        this.procesando.set(false);
+        this.miembros.update(xs => xs.filter(x => x.id !== u.id));
+        this.seleccionado.set(null);
+        this.textoEliminacion.set('');
+        this.avisos.ok('Cuenta eliminada definitivamente.');
+      },
+      error: err => {
+        this.procesando.set(false);
+        this.avisos.error(mensajeDe(err));
+      }
     });
   }
   copiar(valor: string): void {
