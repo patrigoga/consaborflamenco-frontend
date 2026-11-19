@@ -3,6 +3,21 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Pagina } from '../core/modelos';
 
 export type AccionEvento = 'aprobar' | 'rechazar' | 'publicar' | 'despublicar' | 'destacar' | 'quitar-destacado' | 'archivar' | 'restaurar';
+export const TIPOS_EVENTO = [
+  { valor: 'ESPECTACULO', etiqueta: 'Espectáculo' },
+  { valor: 'FESTIVAL', etiqueta: 'Festival' },
+  { valor: 'RECITAL', etiqueta: 'Recital' },
+  { valor: 'CURSO', etiqueta: 'Curso' },
+  { valor: 'CONCURSO', etiqueta: 'Concurso' },
+  { valor: 'TALLER', etiqueta: 'Taller' },
+  { valor: 'ZAMBOMBA', etiqueta: 'Zambomba flamenca' },
+  { valor: 'CONFERENCIA', etiqueta: 'Conferencia' },
+  { valor: 'ENCUENTRO', etiqueta: 'Encuentro' },
+  { valor: 'CONCIERTO', etiqueta: 'Concierto' },
+  { valor: 'ACTIVIDAD', etiqueta: 'Actividad cultural' },
+  { valor: 'OTRO', etiqueta: 'Otro' },
+] as const;
+
 export type FiltroEventos = 'ACTIVOS' | 'TODOS' | 'PUBLICADOS' | 'PENDIENTES' | 'BORRADORES' | 'ARCHIVADOS';
 
 export interface EventoAdmin {
@@ -12,6 +27,8 @@ export interface EventoAdmin {
   pais: string; cartelUrl: string | null; organizador: string | null;
   gratuito: boolean | null; precioCentimos: number | null; entradaUrl: string | null;
   fuenteNombre: string | null; fuenteUrl: string | null;
+  artistasTexto: string | null;
+  huella: string | null; origenPlataforma: string | null; origenEventoId: string | null;
   estadoRevision: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
   publicado: boolean; destacado: boolean; archivado: boolean;
   creadoPorUsuarioId: number | null; aprobadoPorUsuarioId: number | null;
@@ -23,7 +40,7 @@ export type EventoPeticion = Pick<EventoAdmin,
   'titulo' | 'descripcion' | 'tipo' | 'fechaInicio' | 'fechaFin' | 'zonaHoraria' |
   'lugar' | 'direccion' | 'localidad' | 'provincia' | 'pais' | 'cartelUrl' |
   'organizador' | 'gratuito' | 'precioCentimos' | 'entradaUrl' | 'fuenteNombre' |
-  'fuenteUrl' | 'artistaIds'> & { slug: string | null };
+  'fuenteUrl' | 'artistaIds' | 'artistasTexto'> & { slug: string | null };
 
 const API = '/api/v1/admin/eventos';
 @Injectable({ providedIn: 'root' })

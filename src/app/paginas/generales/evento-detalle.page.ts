@@ -36,6 +36,12 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
           @if (e.direccion) { <p><strong>Dirección:</strong> {{ e.direccion }}</p> }
           @if (e.organizador) { <p><strong>Organiza:</strong> {{ e.organizador }}</p> }
           @if (e.descripcion) { <p class="texto">{{ e.descripcion }}</p> }
+          @if (e.artistasTexto) {
+            <section>
+              <h2>Artistas participantes</h2>
+              <p class="texto">{{ e.artistasTexto }}</p>
+            </section>
+          }
           @if (e.gratuito === true) { <p><strong>Entrada gratuita</strong></p> }
           @else if (e.precioCentimos !== null) { <p>Precio: {{ e.precioCentimos / 100 }} €</p> }
           @if (e.entradaUrl) {

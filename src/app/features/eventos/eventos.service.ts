@@ -21,6 +21,7 @@ export interface EventoPublico {
   precioCentimos: number | null;
   entradaUrl: string | null;
   artistaIds: number[];
+  artistasTexto: string | null;
 }
 
 export interface PaginaEventos {

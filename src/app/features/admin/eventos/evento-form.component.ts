@@ -6,7 +6,7 @@ import { ArtistaAdmin } from '../core/modelos';
 import { AvisosService } from '../core/avisos.service';
 import { mensajeDe } from '../core/errores';
 import { ConCambiosPendientes } from '../core/guards';
-import { AccionEvento, EventoAdmin, EventoPeticion, EventosApiService } from './eventos-api.service';
+import { AccionEvento, EventoAdmin, EventoPeticion, EventosApiService, TIPOS_EVENTO } from './eventos-api.service';
 
 function nulo(s: string): string | null { return s.trim() || null; }
 function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? ''; }
@@ -44,11 +44,9 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
           <div class="adm-campo">
             <label for="evento-tipo">Tipo de evento</label>
             <select id="evento-tipo" formControlName="tipo">
-              <option value="ESPECTACULO">Espectáculo</option>
-              <option value="FESTIVAL">Festival</option>
-              <option value="RECITAL">Recital</option>
-              <option value="ACTIVIDAD">Actividad cultural</option>
-              <option value="OTRO">Otro</option>
+              @for (tipo of tiposEvento; track tipo.valor) {
+                <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+              }
             </select>
           </div>
           <div class="adm-campo">
@@ -121,7 +119,7 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
             </select>
           </div>
           <div class="adm-campo">
-            <label for="evento-precio">Precio en euros (opcional)</label>
+            <label for="evento-precio">Precio mínimo «desde», en euros (opcional)</label>
             <input id="evento-precio" formControlName="precioEuros" type="number" min="0" step="0.01">
           </div>
         </div>
@@ -139,6 +137,22 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
             <input id="evento-fuente" formControlName="fuenteUrl" maxlength="1024" placeholder="https://">
           </div>
         </div>
+
+        <div class="adm-campo">
+          <label for="evento-artistas-texto">Artistas anunciados en el cartel (texto original)</label>
+          <textarea id="evento-artistas-texto" formControlName="artistasTexto" rows="4" maxlength="5000"
+                    placeholder="Un nombre por línea, incluidos artistas que aún no están registrados"></textarea>
+          <p class="adm-ayuda">Se conservan todos los nombres del cartel; enlaza abajo los artistas que sí tienen ficha.</p>
+        </div>
+
+        @if (evento()?.origenPlataforma) {
+          <div class="adm-nota">
+            <strong>Importado de: {{ evento()?.origenPlataforma }}</strong>
+            @if (evento()?.origenEventoId) { <p>Referencia de origen: {{ evento()?.origenEventoId }}</p> }
+            @if (evento()?.huella) { <p>Huella de duplicados: {{ evento()?.huella }}</p> }
+            <p>La procedencia se mantiene aunque edites el evento.</p>
+          </div>
+        }
 
         <section class="adm-panel" aria-label="Artistas participantes">
           <h2 class="adm-panel__titulo">Artistas participantes</h2>
@@ -192,6 +206,7 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
   `
 })
 export class EventoFormComponent implements OnInit, ConCambiosPendientes {
+  readonly tiposEvento = TIPOS_EVENTO;
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(EventosApiService);
   private readonly artistasApi = inject(AdminApiService);
@@ -226,7 +241,8 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
     precioEuros: [''],
     entradaUrl: [''],
     fuenteNombre: [''],
-    fuenteUrl: ['']
+    fuenteUrl: [''],
+    artistasTexto: ['']
   });
 
   ngOnInit(): void {
@@ -250,7 +266,7 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
           gratuito: e.gratuito === null ? '' : String(e.gratuito),
           precioEuros: e.precioCentimos === null ? '' : String(e.precioCentimos / 100),
           entradaUrl: e.entradaUrl ?? '', fuenteNombre: e.fuenteNombre ?? '',
-          fuenteUrl: e.fuenteUrl ?? ''
+          fuenteUrl: e.fuenteUrl ?? '', artistasTexto: e.artistasTexto ?? ''
         });
         this.form.markAsPristine();
       },
@@ -290,7 +306,8 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
       gratuito: v.gratuito === '' ? null : v.gratuito === 'true',
       precioCentimos: cantidad === null ? null : Math.round(cantidad * 100),
       entradaUrl: nulo(v.entradaUrl), fuenteNombre: nulo(v.fuenteNombre),
-      fuenteUrl: nulo(v.fuenteUrl), artistaIds: this.seleccionados()
+      fuenteUrl: nulo(v.fuenteUrl), artistaIds: this.seleccionados(),
+      artistasTexto: v.artistasTexto
     };
     this.guardando.set(true);
     const id = this.evento()?.id;
