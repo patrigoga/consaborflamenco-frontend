@@ -67,11 +67,24 @@
         <div class="cinema-tile__body"><h3>{{item.titulo}}</h3><p>{{item.subtitulo}}</p></div>
       </a>
     </div>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().eventos === 'bd'">
-      <a class="cinema-tile cinema-tile--event" [routerLink]="rutas.eventos" *ngFor="let tipo of ['Espectáculos', 'Recitales', 'Festivales']">
-        <div class="cinema-tile__media cinema-tile--red"><span class="cinema-pill">Próximamente</span><span class="cinema-tile__illustration" aria-hidden="true">✺</span></div>
-        <div class="cinema-tile__body"><h3>{{tipo}}</h3><p>Consulta la agenda flamenca</p></div>
+    <p class="cinema-status" role="status" *ngIf="fuentes.fuentes().eventos === 'bd' && eventosCargando()">Cargando eventos…</p>
+    <p class="cinema-status" role="alert" *ngIf="fuentes.fuentes().eventos === 'bd' && eventosError()">No podemos consultar la agenda en este momento.</p>
+    <div class="cinema-rail" *ngIf="fuentes.fuentes().eventos === 'bd' && eventos().length">
+      <a class="cinema-tile cinema-tile--event" [routerLink]="['/eventos',evento.slug]" *ngFor="let evento of eventos()">
+        <div class="cinema-tile__media cinema-tile--red">
+          <img *ngIf="evento.cartelUrl" [src]="evento.cartelUrl" [alt]="'Cartel de ' + evento.titulo" loading="lazy">
+          <span *ngIf="!evento.cartelUrl" class="cinema-tile__illustration" aria-hidden="true">✺</span>
+        </div>
+        <div class="cinema-tile__body">
+          <h3>{{evento.titulo}}</h3>
+          <p>{{evento.fechaInicio | date:'dd/MM/yyyy · HH:mm'}} · {{evento.localidad || evento.lugar || 'Lugar por confirmar'}}</p>
+        </div>
       </a>
+    </div>
+    <div class="cinema-empty" *ngIf="fuentes.fuentes().eventos === 'bd' && !eventosCargando() && !eventosError() && eventos().length === 0">
+      <strong>Próximamente: nuevos eventos flamencos</strong>
+      <p>Estamos preparando la agenda. Publicaremos aquí los tres próximos eventos verificados.</p>
+      <a [routerLink]="rutas.eventos">Ver agenda →</a>
     </div>
   </section>
 
