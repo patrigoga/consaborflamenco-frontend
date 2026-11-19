@@ -10,6 +10,9 @@ export const serverRoutes: ServerRoute[] = [
   // /flamenco y /revista redirigen a su primera sección.
   { path: 'flamenco', renderMode: RenderMode.Server },
   { path: 'revista', renderMode: RenderMode.Server },
+  // Zona privada de miembros: solo se renderiza en el navegador.
+  { path: 'acceso', renderMode: RenderMode.Client },
+  { path: 'mi-cuenta', renderMode: RenderMode.Client },
   // Registro preliminar: ruta pública válida, sin habilitar las altas ni indexarla.
   { path: 'registro', renderMode: RenderMode.Server, status: 200 },
   // Perfiles públicos dinámicos: el resolver conserva el 404 de la API si el artista no existe.

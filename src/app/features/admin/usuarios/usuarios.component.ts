@@ -73,7 +73,8 @@ import { generarPassword } from '../ui/password';
           <input id="u-email" type="email" formControlName="email" maxlength="254" autocomplete="off">
           @if (errorCampo('email')) { <p class="adm-campo__error">{{ errorCampo('email') }}</p> }
         </div>
-        <button type="submit" class="adm-btn adm-btn--oro" [disabled]="enviando()">{{ enviando() ? 'Creando…' : 'Crear cuenta' }}</button>
+        <button type="submit" class="adm-btn adm-btn--oro" [disabled]="enviando()">{{ enviando() ? 'Creando…' : 'Crear administrador' }}</button>
+        <button type="button" class="adm-btn" [disabled]="enviando()" (click)="crear('miembro')">Crear miembro de prueba</button>
       </form>
       <p class="adm-ayuda">Se genera una contraseña temporal segura que verás una sola vez.</p>
     </section>
@@ -111,19 +112,22 @@ export class UsuariosComponent implements OnInit {
     return campo === 'email' ? 'Introduce un email válido.' : 'Indica un nombre de 2 a 120 caracteres.';
   }
 
-  crear(): void {
+  crear(tipo: 'admin' | 'miembro' = 'admin'): void {
     this.form.markAllAsTouched();
     this.erroresServidor.set({});
     if (this.form.invalid) return;
     const { nombre, email } = this.form.getRawValue();
     const password = generarPassword();
     this.enviando.set(true);
-    this.api.crearUsuario(email, nombre, password).subscribe({
+    const peticion = tipo === 'miembro'
+      ? this.api.crearMiembroPrueba(email, nombre, password)
+      : this.api.crearUsuario(email, nombre, password);
+    peticion.subscribe({
       next: u => {
         this.enviando.set(false);
         this.form.reset();
         this.passwordMostrada.set({ nombre: u.nombre, password });
-        this.avisos.ok(`Cuenta creada para ${u.nombre}.`);
+        this.avisos.ok(`Cuenta ${tipo === 'miembro' ? 'de miembro' : 'de administración'} creada para ${u.nombre}.`);
         this.cargar();
       },
       error: e => {
