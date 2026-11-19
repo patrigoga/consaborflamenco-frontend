@@ -49,6 +49,7 @@ export class MiembrosAdminService {
   private readonly url = '/api/v1/admin/miembros';
 
   listar() { return this.http.get<MiembroAdmin[]>(this.url); }
+  eliminar(id: number) { return this.http.delete<void>(`${this.url}/${id}`); }
   editar(id: number, nombre: string, email: string) {
     return this.http.put<MiembroAdmin>(`${this.url}/${id}`, { nombre, email });
   }
