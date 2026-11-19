@@ -41,6 +41,7 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
             <p><a [href]="e.entradaUrl" target="_blank" rel="noopener noreferrer">Información y entradas</a></p>
           }
         </article>
+        }
       }
     </main>
   `
