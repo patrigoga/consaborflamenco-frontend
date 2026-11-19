@@ -1,8 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { AdminApiService } from '../core/admin-api.service';
-import { ArtistaAdmin } from '../core/modelos';
 import { AvisosService } from '../core/avisos.service';
 import { mensajeDe } from '../core/errores';
 import { ConCambiosPendientes } from '../core/guards';
@@ -127,22 +125,27 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
           <label for="evento-entradas">Enlace de entradas</label>
           <input id="evento-entradas" formControlName="entradaUrl" maxlength="1024" placeholder="https://">
         </div>
-        <div class="adm-campos-par">
+        <details class="adm-panel">
+          <summary>Información de procedencia (opcional)</summary>
+          <p class="adm-ayuda">Solo si quieres indicar dónde se ha publicado el evento originalmente.</p>
+          <div class="adm-campos-par">
           <div class="adm-campo">
-            <label for="evento-fuente-nombre">Nombre de la fuente</label>
+            <label for="evento-fuente-nombre">Nombre de la fuente (opcional)</label>
             <input id="evento-fuente-nombre" formControlName="fuenteNombre" maxlength="200">
           </div>
           <div class="adm-campo">
-            <label for="evento-fuente">Enlace a la fuente</label>
+            <label for="evento-fuente">Enlace a la fuente (opcional)</label>
             <input id="evento-fuente" formControlName="fuenteUrl" maxlength="1024" placeholder="https://">
           </div>
         </div>
 
+        </details>
+
         <div class="adm-campo">
-          <label for="evento-artistas-texto">Artistas anunciados en el cartel (texto original)</label>
+          <label for="evento-artistas-texto">Artistas anunciados en el cartel (opcional)</label>
           <textarea id="evento-artistas-texto" formControlName="artistasTexto" rows="4" maxlength="5000"
                     placeholder="Un nombre por línea, incluidos artistas que aún no están registrados"></textarea>
-          <p class="adm-ayuda">Se conservan todos los nombres del cartel; enlaza abajo los artistas que sí tienen ficha.</p>
+          <p class="adm-ayuda">Si los incluyes, escribe los nombres tal y como aparecen en el cartel.</p>
         </div>
 
         @if (evento()?.origenPlataforma) {
@@ -153,24 +156,6 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
             <p>La procedencia se mantiene aunque edites el evento.</p>
           </div>
         }
-
-        <section class="adm-panel" aria-label="Artistas participantes">
-          <h2 class="adm-panel__titulo">Artistas participantes</h2>
-          <p class="adm-ayuda">Selecciona los artistas que ya están registrados en ConSaborFlamenco.</p>
-          @if (artistas().length) {
-            <div class="adm-pila">
-              @for (a of artistas(); track a.id) {
-                <label>
-                  <input type="checkbox" [checked]="seleccionados().includes(a.id)"
-                         (change)="marcarArtista(a.id, $any($event.target).checked)">
-                  {{ a.nombre }} ({{ a.disciplina }})
-                </label>
-              }
-            </div>
-          } @else {
-            <p class="adm-ayuda">No hay artistas disponibles para seleccionar. Puedes guardar el evento sin participantes asociados.</p>
-          }
-        </section>
 
         @if (errorGeneral()) { <p class="adm-alerta" role="alert">{{ errorGeneral() }}</p> }
         <button class="adm-btn adm-btn--oro" type="submit"
@@ -209,18 +194,16 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
   readonly tiposEvento = TIPOS_EVENTO;
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(EventosApiService);
-  private readonly artistasApi = inject(AdminApiService);
   private readonly router = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
   private readonly avisos = inject(AvisosService);
 
   readonly evento = signal<EventoAdmin | null>(null);
-  readonly artistas = signal<ArtistaAdmin[]>([]);
-  readonly seleccionados = signal<number[]>([]);
+  // Se conservan los artistas relacionados previamente aunque se oculte su selector.
+  private artistaIdsExistentes: number[] = [];
   readonly guardando = signal(false);
   readonly errorGeneral = signal<string | null>(null);
   readonly errorCarga = signal<string | null>(null);
-  private artistasOriginales: number[] = [];
 
   readonly form = this.fb.nonNullable.group({
     titulo: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
@@ -246,17 +229,12 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
   });
 
   ngOnInit(): void {
-    this.artistasApi.listar({ page: 0, size: 100, estado: 'ACTIVOS' }).subscribe({
-      next: p => this.artistas.set(p.content),
-      error: () => {}
-    });
     const id = this.ruta.snapshot.paramMap.get('id');
     if (!id) return;
     this.api.obtener(Number(id)).subscribe({
       next: e => {
         this.evento.set(e);
-        this.seleccionados.set([...e.artistaIds]);
-        this.artistasOriginales = [...e.artistaIds];
+        this.artistaIdsExistentes = [...e.artistaIds];
         this.form.patchValue({
           titulo: e.titulo, slug: e.slug, descripcion: e.descripcion ?? '', tipo: e.tipo,
           fechaInicio: fechaFormulario(e.fechaInicio), fechaFin: fechaFormulario(e.fechaFin),
@@ -274,13 +252,8 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
     });
   }
 
-  marcarArtista(id: number, marcado: boolean): void {
-    this.seleccionados.update(ids => marcado ? [...ids.filter(i => i !== id), id] : ids.filter(i => i !== id));
-  }
-
   hayCambiosSinGuardar(): boolean {
-    return this.form.dirty ||
-      JSON.stringify([...this.seleccionados()].sort()) !== JSON.stringify([...this.artistasOriginales].sort());
+    return this.form.dirty;
   }
 
   guardar(): void {
@@ -306,7 +279,7 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
       gratuito: v.gratuito === '' ? null : v.gratuito === 'true',
       precioCentimos: cantidad === null ? null : Math.round(cantidad * 100),
       entradaUrl: nulo(v.entradaUrl), fuenteNombre: nulo(v.fuenteNombre),
-      fuenteUrl: nulo(v.fuenteUrl), artistaIds: this.seleccionados(),
+      fuenteUrl: nulo(v.fuenteUrl), artistaIds: this.artistaIdsExistentes,
       artistasTexto: v.artistasTexto
     };
     this.guardando.set(true);
@@ -316,7 +289,6 @@ export class EventoFormComponent implements OnInit, ConCambiosPendientes {
       next: e => {
         this.guardando.set(false);
         this.avisos.ok('Evento guardado correctamente.');
-        this.artistasOriginales = [...this.seleccionados()];
         this.form.markAsPristine();
         this.router.navigate(['/admin/eventos', e.id]);
       },
