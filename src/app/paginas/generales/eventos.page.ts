@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SECCIONES } from '../../navegacion';
 import { PaginaSeccionComponent } from '../../compartido/pagina-seccion.component';
@@ -71,10 +71,15 @@ import { EventoPublico, EventosService, PaginaEventos } from '../../features/eve
 export class EventosPage implements OnInit {
   readonly seccion = SECCIONES.eventos;
   private readonly servicio = inject(EventosService);
+  private readonly platformId = inject(PLATFORM_ID);
   readonly pagina = signal<PaginaEventos | null>(null);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
-  ngOnInit(): void { this.cargar(0); }
+  ngOnInit(): void {
+    // La ruta /eventos se prerenderiza sin API; el navegador consulta la agenda actual.
+    if (isPlatformBrowser(this.platformId)) this.cargar(0);
+    else this.cargando.set(false);
+  }
   cargar(page: number): void {
     this.cargando.set(true);
     this.error.set(null);
