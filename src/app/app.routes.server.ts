@@ -14,6 +14,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'registro', renderMode: RenderMode.Server, status: 200 },
   // Perfiles públicos dinámicos: el resolver conserva el 404 de la API si el artista no existe.
   { path: 'revista/artistas/:slug', renderMode: RenderMode.Server },
+  { path: 'eventos/:slug', renderMode: RenderMode.Server },
   { path: 'vista-previa/artista', renderMode: RenderMode.Server, status: 200 },
   // Cualquier otra dirección: página 404 con código HTTP 404 real.
   { path: '**', renderMode: RenderMode.Server, status: 404 }
