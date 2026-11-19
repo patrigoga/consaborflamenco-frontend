@@ -122,7 +122,7 @@ function fechaFormulario(s: string | null): string { return s?.slice(0, 16) ?? '
           </div>
         </div>
         <div class="adm-campo">
-          <label for="evento-entradas">Enlace de entradas</label>
+          <label for="evento-entradas">Enlace de entradas (opcional)</label>
           <input id="evento-entradas" formControlName="entradaUrl" maxlength="1024" placeholder="https://">
         </div>
         <details class="adm-panel">
