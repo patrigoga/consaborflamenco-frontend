@@ -6,7 +6,7 @@ import { ConfirmacionService } from '../core/confirmacion.service';
 import { AvisosService } from '../core/avisos.service';
 import { mensajeDe } from '../core/errores';
 import { generarPassword } from '../ui/password';
-import { MiembroAdmin, MiembrosAdminService } from './miembros-admin.service';
+import { MiembroAdmin, MiembrosAdminService, PerfilMiembro, PermisosMiembro, RegistroAuditoriaMiembro } from './miembros-admin.service';
 
 @Component({
   selector: 'adm-miembros',
@@ -64,19 +64,91 @@ import { MiembroAdmin, MiembrosAdminService } from './miembros-admin.service';
           </div>
           <div class="adm-campo">
             <label for="miembro-email">Correo electrónico</label>
-            <input id="miembro-email" formControlName="email" type="email" maxlength="254">
+            <input id="miembro-email" formControlName="email" type="email" maxlength="254" readonly>
+            <p class="adm-ayuda">Para cambiar el correo necesitamos verificar primero la dirección nueva. Esta función se activará con el servicio de email.</p>
           </div>
           <button type="submit" class="adm-btn adm-btn--oro" [disabled]="procesando() || form.invalid">Guardar datos</button>
         </form>
         <div class="adm-pila">
           <button type="button" class="adm-btn adm-btn--quieto" [disabled]="procesando()" (click)="restablecer(u)">Generar nueva contraseña</button>
           @if (u.activo) {
-            <button type="button" class="adm-btn adm-btn--quieto" [disabled]="procesando()" (click)="cambiarBloqueo(u, true)">Bloquear acceso</button>
+            <div class="adm-campo">
+              <label for="motivo-suspension">Motivo de suspensión (obligatorio, entre 5 y 500 caracteres)</label>
+              <textarea id="motivo-suspension" maxlength="500" rows="3" [value]="motivo()"
+                        (input)="motivo.set($any($event.target).value)"></textarea>
+              <button type="button" class="adm-btn adm-btn--quieto"
+                      [disabled]="procesando() || motivo().trim().length < 5"
+                      (click)="cambiarBloqueo(u, true)">Suspender miembro</button>
+            </div>
           } @else {
             <button type="button" class="adm-btn adm-btn--quieto" [disabled]="procesando()" (click)="cambiarBloqueo(u, false)">Desbloquear y activar</button>
           }
           <button type="button" class="adm-btn adm-btn--quieto" (click)="seleccionado.set(null)">Cerrar ficha</button>
         </div>
+        @if (u.suspensionMotivo) {
+          <p class="adm-franja"><strong>Motivo de suspensión:</strong> {{ u.suspensionMotivo }}
+            @if (u.suspensionEn) { · {{ u.suspensionEn | date:'dd/MM/yyyy HH:mm' }} }
+          </p>
+        }
+        <section class="adm-panel">
+          <h3>Permisos de contenido</h3>
+          <p class="adm-ayuda">Estos permisos controlarán las funciones de edición y publicación del futuro panel del miembro. No otorgan aprobación administrativa automática.</p>
+          <div class="adm-pila">
+            <label><input type="checkbox" [checked]="permisos().crearEventos"
+                          (change)="marcarPermiso('crearEventos', $any($event.target).checked)"> Crear eventos</label>
+            <label><input type="checkbox" [checked]="permisos().crearCursos"
+                          (change)="marcarPermiso('crearCursos', $any($event.target).checked)"> Crear cursos</label>
+            <label><input type="checkbox" [checked]="permisos().publicarArticulos"
+                          (change)="marcarPermiso('publicarArticulos', $any($event.target).checked)"> Enviar artículos</label>
+            <label><input type="checkbox" [checked]="permisos().editarBiografia"
+                          (change)="marcarPermiso('editarBiografia', $any($event.target).checked)"> Editar biografía</label>
+            <button type="button" class="adm-btn adm-btn--oro" [disabled]="procesando()" (click)="guardarPermisos(u)">Guardar permisos</button>
+          </div>
+        </section>
+        <section class="adm-panel">
+          <h3>Perfiles profesionales</h3>
+          <p class="adm-ayuda">El perfil es una solicitud revisable. No vincula automáticamente fichas públicas ya existentes.</p>
+          <div class="adm-form-linea">
+            <div class="adm-campo">
+              <label for="tipo-perfil">Tipo</label>
+              <select id="tipo-perfil" [value]="tipoPerfil()" (change)="tipoPerfil.set($any($event.target).value)">
+                <option value="ARTISTA">Artista</option>
+                <option value="ACADEMIA">Academia</option>
+                <option value="PENA">Peña</option>
+                <option value="ASOCIACION">Asociación</option>
+                <option value="TIENDA">Tienda</option>
+                <option value="ORGANIZADOR">Organizador</option>
+              </select>
+            </div>
+            <div class="adm-campo">
+              <label for="nombre-perfil">Nombre profesional</label>
+              <input id="nombre-perfil" [value]="nombrePerfil()" maxlength="160" (input)="nombrePerfil.set($any($event.target).value)">
+            </div>
+            <button type="button" class="adm-btn" [disabled]="procesando() || nombrePerfil().trim().length < 2"
+                    (click)="crearPerfil(u)">Añadir perfil</button>
+          </div>
+          <ul>
+            @for (p of perfiles(); track p.id) {
+              <li>{{ p.nombre }} · {{ p.tipo }} · {{ p.estado }}
+                @if (p.estado === 'PENDIENTE') {
+                  <button type="button" class="adm-btn adm-btn--peq" [disabled]="procesando()" (click)="revisarPerfil(u, p, 'APROBADO')">Aprobar</button>
+                  <button type="button" class="adm-btn adm-btn--peq" [disabled]="procesando()" (click)="revisarPerfil(u, p, 'RECHAZADO')">Rechazar</button>
+                }
+              </li>
+            } @empty { <li>Sin perfiles profesionales asignados.</li> }
+          </ul>
+        </section>
+        <section class="adm-panel">
+          <h3>Historial administrativo</h3>
+          <p class="adm-ayuda">Últimas 200 acciones registradas. Incluye la identidad de quien efectuó cada cambio.</p>
+          <ul>
+            @for (a of historial(); track a.id) {
+              <li><strong>{{ a.fecha | date:'dd/MM/yyyy HH:mm' }}</strong> · {{ a.accion }} · Admin ID {{ a.administradorId }}
+                @if (a.detalle) { — {{ a.detalle }} }
+              </li>
+            } @empty { <li>Sin acciones registradas desde la activación de esta función.</li> }
+          </ul>
+        </section>
         @if (passwordTemporal(); as p) {
           <div class="adm-franja adm-franja--oro" role="status">
             <p>Contraseña temporal: <code class="adm-codigo">{{ p }}</code>. Muéstrala al usuario por un canal seguro; no se enviará por email.</p>
@@ -100,6 +172,14 @@ export class MiembrosAdminComponent implements OnInit {
   readonly procesando = signal(false);
   readonly error = signal<string | null>(null);
   readonly passwordTemporal = signal<string | null>(null);
+  readonly motivo = signal('');
+  readonly perfiles = signal<PerfilMiembro[]>([]);
+  readonly historial = signal<RegistroAuditoriaMiembro[]>([]);
+  readonly tipoPerfil = signal('ARTISTA');
+  readonly nombrePerfil = signal('');
+  readonly permisos = signal<PermisosMiembro>({
+    crearEventos: false, crearCursos: false, publicarArticulos: false, editarBiografia: false
+  });
   readonly form = this.fb.nonNullable.group({
     nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]]
@@ -124,10 +204,67 @@ export class MiembrosAdminComponent implements OnInit {
     this.seleccionado.set(u);
     this.passwordTemporal.set(null);
     this.form.reset({ nombre: u.nombre, email: u.email });
+    this.motivo.set('');
+    this.permisos.set({
+      crearEventos: u.puedeCrearEventos, crearCursos: u.puedeCrearCursos,
+      publicarArticulos: u.puedePublicarArticulos, editarBiografia: u.puedeEditarBiografia
+    });
+    this.actualizarListas(u.id);
   }
   private actualizar(u: MiembroAdmin): void {
     this.miembros.update(xs => xs.map(x => x.id === u.id ? u : x));
     this.seleccionado.set(u);
+  }
+  private actualizarListas(id: number): void {
+    this.api.perfiles(id).subscribe({
+      next: datos => this.perfiles.set(datos),
+      error: e => this.avisos.error(mensajeDe(e))
+    });
+    this.api.historial(id).subscribe({
+      next: datos => this.historial.set(datos),
+      error: e => this.avisos.error(mensajeDe(e))
+    });
+  }
+  marcarPermiso(clave: keyof PermisosMiembro, valor: boolean): void {
+    this.permisos.update(p => ({ ...p, [clave]: valor }));
+  }
+  guardarPermisos(u: MiembroAdmin): void {
+    if (this.procesando()) return;
+    this.procesando.set(true);
+    this.api.actualizarPermisos(u.id, this.permisos()).subscribe({
+      next: actualizado => {
+        this.procesando.set(false);
+        this.actualizar(actualizado);
+        this.actualizarListas(u.id);
+        this.avisos.ok('Permisos actualizados.');
+      },
+      error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
+    });
+  }
+  crearPerfil(u: MiembroAdmin): void {
+    if (this.procesando()) return;
+    this.procesando.set(true);
+    this.api.crearPerfil(u.id, this.tipoPerfil(), this.nombrePerfil()).subscribe({
+      next: () => {
+        this.procesando.set(false);
+        this.nombrePerfil.set('');
+        this.actualizarListas(u.id);
+        this.avisos.ok('Perfil creado y pendiente de revisión.');
+      },
+      error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
+    });
+  }
+  revisarPerfil(u: MiembroAdmin, p: PerfilMiembro, estado: 'APROBADO' | 'RECHAZADO'): void {
+    if (this.procesando()) return;
+    this.procesando.set(true);
+    this.api.revisarPerfil(u.id, p.id, estado).subscribe({
+      next: () => {
+        this.procesando.set(false);
+        this.actualizarListas(u.id);
+        this.avisos.ok('Estado del perfil actualizado.');
+      },
+      error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
+    });
   }
   guardar(): void {
     const u = this.seleccionado();
@@ -135,7 +272,7 @@ export class MiembrosAdminComponent implements OnInit {
     this.procesando.set(true);
     const { nombre, email } = this.form.getRawValue();
     this.api.editar(u.id, nombre, email).subscribe({
-      next: actualizado => { this.procesando.set(false); this.actualizar(actualizado); this.avisos.ok('Datos actualizados.'); },
+      next: actualizado => { this.procesando.set(false); this.actualizar(actualizado); this.actualizarListas(u.id); this.avisos.ok('Datos actualizados.'); },
       error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
     });
   }
@@ -148,9 +285,9 @@ export class MiembrosAdminComponent implements OnInit {
     });
     if (!ok) return;
     this.procesando.set(true);
-    const accion = bloquear ? this.api.bloquear(u.id) : this.api.desbloquear(u.id);
+    const accion = bloquear ? this.api.bloquear(u.id, this.motivo()) : this.api.desbloquear(u.id);
     accion.subscribe({
-      next: actualizado => { this.procesando.set(false); this.actualizar(actualizado); this.avisos.ok(bloquear ? 'Miembro bloqueado.' : 'Miembro reactivado.'); },
+      next: actualizado => { this.procesando.set(false); this.actualizar(actualizado); this.actualizarListas(u.id); this.avisos.ok(bloquear ? 'Miembro suspendido.' : 'Miembro reactivado.'); },
       error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
     });
   }
@@ -167,6 +304,7 @@ export class MiembrosAdminComponent implements OnInit {
       next: actualizado => {
         this.procesando.set(false);
         this.actualizar(actualizado);
+        this.actualizarListas(u.id);
         this.passwordTemporal.set(password);
         this.avisos.ok('Contraseña restablecida.');
       },
