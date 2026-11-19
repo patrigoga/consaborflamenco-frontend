@@ -56,6 +56,9 @@ export class MiembrosAdminService {
     return this.http.post<MiembroAdmin>(`${this.url}/${id}/bloquear`, { motivo });
   }
   desbloquear(id: number) { return this.http.post<MiembroAdmin>(`${this.url}/${id}/desbloquear`, null); }
+  solicitarCambioCorreo(id: number, nuevoEmail: string) {
+    return this.http.post<void>(`${this.url}/${id}/email/cambio`, { nuevoEmail });
+  }
   actualizarPermisos(id: number, p: PermisosMiembro) {
     return this.http.put<MiembroAdmin>(`${this.url}/${id}/permisos`, p);
   }
