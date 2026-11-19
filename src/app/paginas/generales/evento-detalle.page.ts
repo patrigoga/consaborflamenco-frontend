@@ -14,6 +14,11 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
     .detalle-evento p { line-height:1.7; }
     .detalle-evento .texto { white-space:pre-wrap; }
     .detalle-evento a { text-decoration:underline; }
+    .compartir-evento { margin-top:32px; padding:20px; border:1px solid #d6d6d6; border-radius:12px; }
+    .compartir-acciones { display:flex; flex-wrap:wrap; gap:10px; }
+    .compartir-acciones a, .compartir-acciones button { display:inline-flex; align-items:center; padding:10px 14px; border:1px solid currentColor; border-radius:8px; background:transparent; color:inherit; font:inherit; cursor:pointer; text-decoration:none; }
+    .compartir-acciones a:focus-visible, .compartir-acciones button:focus-visible { outline:3px solid currentColor; outline-offset:3px; }
+    .compartir-ayuda { font-size:.9rem; }
   `],
   template: `
     <main class="detalle-evento">
@@ -47,6 +52,18 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
           @if (e.entradaUrl) {
             <p><a [href]="e.entradaUrl" target="_blank" rel="noopener noreferrer">Información y entradas</a></p>
           }
+          <section class="compartir-evento" aria-labelledby="compartir-titulo">
+            <h2 id="compartir-titulo">Comparte este evento</h2>
+            <div class="compartir-acciones">
+              <a [href]="facebookUrl(e)" target="_blank" rel="noopener noreferrer" aria-label="Compartir evento en Facebook">Facebook</a>
+              <a [href]="whatsappUrl(e)" target="_blank" rel="noopener noreferrer" aria-label="Compartir evento en WhatsApp">WhatsApp</a>
+              <a [href]="telegramUrl(e)" target="_blank" rel="noopener noreferrer" aria-label="Compartir evento en Telegram">Telegram</a>
+              <button type="button" (click)="compartirDispositivo(e)">Instagram / TikTok / otras apps</button>
+              <button type="button" (click)="copiarEnlace(e)">Copiar enlace</button>
+            </div>
+            <p class="compartir-ayuda">Instagram y TikTok no permiten compartir directamente un evento web mediante un enlace de publicación universal. Puedes usar el menú de compartir de tu dispositivo o copiar el enlace para preparar tu publicación.</p>
+            @if (avisoCompartir()) { <p role="status">{{ avisoCompartir() }}</p> }
+          </section>
         </article>
         }
       }
@@ -60,6 +77,50 @@ export class EventoDetallePage implements OnInit {
   readonly evento = signal<EventoPublico | null>(null);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
+  readonly avisoCompartir = signal<string | null>(null);
+
+  private urlEvento(): string {
+    // En SSR no se accede al objeto window; la acción de compartir solo se ejecuta en navegador.
+    const slug = this.ruta.snapshot.paramMap.get('slug') || '';
+    return new URL('/eventos/' + encodeURIComponent(slug), window.location.origin).href;
+  }
+
+  facebookUrl(e: EventoPublico): string {
+    return 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(this.urlEvento());
+  }
+
+  whatsappUrl(e: EventoPublico): string {
+    return 'https://api.whatsapp.com/send?text=' + encodeURIComponent(e.titulo + ' — ' + this.urlEvento());
+  }
+
+  telegramUrl(e: EventoPublico): string {
+    return 'https://t.me/share/url?url=' + encodeURIComponent(this.urlEvento())
+      + '&text=' + encodeURIComponent(e.titulo);
+  }
+
+  async copiarEnlace(e: EventoPublico): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.urlEvento());
+      this.avisoCompartir.set('Enlace copiado. Puedes pegarlo en tus redes sociales.');
+    } catch {
+      this.avisoCompartir.set('No se pudo copiar automáticamente. Copia la dirección desde tu navegador.');
+    }
+  }
+
+  async compartirDispositivo(e: EventoPublico): Promise<void> {
+    if (!navigator.share) {
+      await this.copiarEnlace(e);
+      return;
+    }
+    try {
+      await navigator.share({ title: e.titulo, text: e.titulo, url: this.urlEvento() });
+      this.avisoCompartir.set(null);
+    } catch (error) {
+      if ((error as Error)?.name !== 'AbortError') {
+        this.avisoCompartir.set('No se pudo abrir el menú para compartir.');
+      }
+    }
+  }
   ngOnInit(): void {
     // No consultar URLs relativas desde el servidor SSR: el navegador resuelve la API bajo /api.
     if (!isPlatformBrowser(this.platformId)) { this.cargando.set(false); return; }
