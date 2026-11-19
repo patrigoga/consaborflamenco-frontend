@@ -65,7 +65,17 @@ import { MiembroAdmin, MiembrosAdminService, PerfilMiembro, PermisosMiembro, Reg
           <div class="adm-campo">
             <label for="miembro-email">Correo electrónico</label>
             <input id="miembro-email" formControlName="email" type="email" maxlength="254" readonly>
-            <p class="adm-ayuda">Para cambiar el correo necesitamos verificar primero la dirección nueva. Esta función se activará con el servicio de email.</p>
+            <p class="adm-ayuda">El correo actual no se cambia hasta que se confirme desde la dirección nueva.</p>
+          </div>
+          <div class="adm-campo">
+            <label for="nuevo-email">Solicitar cambio de correo</label>
+            <input id="nuevo-email" type="email" maxlength="254" autocomplete="off"
+                   [value]="nuevoEmail()" (input)="nuevoEmail.set($any($event.target).value)"
+                   placeholder="nuevo@ejemplo.com">
+            <button type="button" class="adm-btn adm-btn--quieto"
+                    [disabled]="procesando() || !nuevoEmail().includes('@')"
+                    (click)="solicitarNuevoCorreo(u)">Enviar verificación</button>
+            <p class="adm-ayuda">Necesita SMTP configurado. El enlace caduca a las 24 horas y solo funciona una vez.</p>
           </div>
           <button type="submit" class="adm-btn adm-btn--oro" [disabled]="procesando() || form.invalid">Guardar datos</button>
         </form>
@@ -173,6 +183,7 @@ export class MiembrosAdminComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly passwordTemporal = signal<string | null>(null);
   readonly motivo = signal('');
+  readonly nuevoEmail = signal('');
   readonly perfiles = signal<PerfilMiembro[]>([]);
   readonly historial = signal<RegistroAuditoriaMiembro[]>([]);
   readonly tipoPerfil = signal('ARTISTA');
@@ -205,6 +216,7 @@ export class MiembrosAdminComponent implements OnInit {
     this.passwordTemporal.set(null);
     this.form.reset({ nombre: u.nombre, email: u.email });
     this.motivo.set('');
+    this.nuevoEmail.set('');
     this.permisos.set({
       crearEventos: u.puedeCrearEventos, crearCursos: u.puedeCrearCursos,
       publicarArticulos: u.puedePublicarArticulos, editarBiografia: u.puedeEditarBiografia
@@ -262,6 +274,19 @@ export class MiembrosAdminComponent implements OnInit {
         this.procesando.set(false);
         this.actualizarListas(u.id);
         this.avisos.ok('Estado del perfil actualizado.');
+      },
+      error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
+    });
+  }
+  solicitarNuevoCorreo(u: MiembroAdmin): void {
+    if (this.procesando()) return;
+    this.procesando.set(true);
+    this.api.solicitarCambioCorreo(u.id, this.nuevoEmail()).subscribe({
+      next: () => {
+        this.procesando.set(false);
+        this.nuevoEmail.set('');
+        this.actualizarListas(u.id);
+        this.avisos.ok('Enlace de verificación enviado. El correo actual seguirá activo hasta la confirmación.');
       },
       error: e => { this.procesando.set(false); this.avisos.error(mensajeDe(e)); }
     });
