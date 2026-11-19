@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EventoPublico, EventosService } from '../../features/eventos/eventos.service';
 
@@ -50,10 +50,13 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
 export class EventoDetallePage implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
   private readonly servicio = inject(EventosService);
+  private readonly platformId = inject(PLATFORM_ID);
   readonly evento = signal<EventoPublico | null>(null);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   ngOnInit(): void {
+    // No consultar URLs relativas desde el servidor SSR: el navegador resuelve la API bajo /api.
+    if (!isPlatformBrowser(this.platformId)) { this.cargando.set(false); return; }
     const slug = this.ruta.snapshot.paramMap.get('slug');
     if (!slug) { this.error.set('Evento no encontrado.'); this.cargando.set(false); return; }
     this.servicio.porSlug(slug).subscribe({
