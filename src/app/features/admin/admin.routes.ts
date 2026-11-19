@@ -42,6 +42,8 @@ export const ADMIN_ROUTES: Routes = [
             loadComponent: () => import('./cargar-datos/cargar-datos.component').then(m => m.CargarDatosComponent) },
           { path: 'destacados', title: 'Destacados – Panel ConSaborFlamenco',
             loadComponent: () => import('./destacados/destacados.component').then(m => m.DestacadosComponent) },
+          { path: 'miembros', title: 'Gestión de miembros – Panel ConSaborFlamenco', canActivate: [principalGuard],
+            loadComponent: () => import('./miembros/miembros-admin.component').then(m => m.MiembrosAdminComponent) },
           { path: 'cuentas', title: 'Cuentas – Panel ConSaborFlamenco', canActivate: [principalGuard],
             loadComponent: () => import('./usuarios/usuarios.component').then(m => m.UsuariosComponent) },
           { path: 'mi-cuenta', title: 'Mi cuenta – Panel ConSaborFlamenco',
