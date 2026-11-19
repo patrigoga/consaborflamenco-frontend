@@ -57,6 +57,10 @@ export const routes: Routes = [
       seccion('servicios', () => import('./paginas/generales/servicios.page').then(m => m.ServiciosPage)),
       seccion('contacto', () => import('./paginas/generales/contacto.page').then(m => m.ContactoPage)),
       seccion('membresias', () => import('./paginas/generales/membresias.page').then(m => m.MembresiasPage)),
+      { path: 'acceso', title: 'Acceso de miembros – ConSaborFlamenco', data: { noindex: true },
+        loadComponent: () => import('./features/miembros/miembro-acceso.page').then(m => m.MiembroAccesoPage) },
+      { path: 'mi-cuenta', title: 'Mi cuenta – ConSaborFlamenco', data: { noindex: true },
+        loadComponent: () => import('./features/miembros/mi-cuenta.page').then(m => m.MiCuentaPage) },
       { path: 'registro', title: 'Registro profesional – ConSaborFlamenco', data: { noindex: true }, loadComponent: () => import('./paginas/generales/registro-profesional.page').then(m => m.RegistroProfesionalComponent) },
       { path: 'vista-previa/artista', title: 'Diseño del perfil de artista', data: { noindex: true }, loadComponent: () => import('./features/artistas/perfil-preview.page').then(m => m.PerfilPreviewPage) },
       {
