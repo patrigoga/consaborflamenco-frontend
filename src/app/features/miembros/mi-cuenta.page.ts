@@ -12,9 +12,9 @@ import { MiembroAuthService } from './miembro-auth.service';
       <h1>Mi espacio en ConSaborFlamenco</h1>
       @if (cargando()) {
         <p role="status">Comprobando sesión…</p>
-      } @else if (auth.sesion(); as miembro) {
-        <p>Bienvenido, <strong>{{ miembro.nombre }}</strong>.</p>
-        <p class="email">{{ miembro.email }}</p>
+      } @else if (auth.sesion()) {
+        <p>Bienvenido, <strong>{{ auth.sesion()!.nombre }}</strong>.</p>
+        <p class="email">{{ auth.sesion()!.email }}</p>
         <section class="tarjetas">
           <article>
             <h2>Mi perfil</h2>
