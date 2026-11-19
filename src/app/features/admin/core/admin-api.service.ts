@@ -70,6 +70,10 @@ export class AdminApiService {
     return this.http.post<UsuarioAdmin>(`${API}/usuarios`, { email, nombre, password });
   }
 
+  crearMiembroPrueba(email: string, nombre: string, password: string): Observable<UsuarioAdmin> {
+    return this.http.post<UsuarioAdmin>(`${API}/usuarios/miembros`, { email, nombre, password });
+  }
+
   cambiarEstadoUsuario(id: number, activar: boolean): Observable<UsuarioAdmin> {
     return this.http.post<UsuarioAdmin>(`${API}/usuarios/${id}/${activar ? 'activar' : 'desactivar'}`, null);
   }
