@@ -20,7 +20,8 @@ import { EventoPublico, EventosService } from '../../features/eventos/eventos.se
       <a routerLink="/eventos">Volver a Eventos</a>
       @if (cargando()) { <p role="status">Cargando evento…</p> }
       @else if (error()) { <p role="alert">{{ error() }}</p> }
-      @else if (evento(); as e) {
+      @else {
+        @if (evento(); as e) {
         <article>
           <h1>{{ e.titulo }}</h1>
           <p><strong>{{ e.fechaInicio | date:'dd/MM/yyyy HH:mm' }}</strong>
