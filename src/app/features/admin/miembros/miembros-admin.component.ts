@@ -111,19 +111,48 @@ import { MiembroAdmin, MiembrosAdminService, PerfilMiembro, PermisosMiembro, Reg
             @if (u.suspensionEn) { · {{ u.suspensionEn | date:'dd/MM/yyyy HH:mm' }} }
           </p>
         }
-        <section class="adm-panel">
-          <h3>Permisos de contenido</h3>
-          <p class="adm-ayuda">Estos permisos controlarán las funciones de edición y publicación del futuro panel del miembro. No otorgan aprobación administrativa automática.</p>
-          <div class="adm-pila">
-            <label><input type="checkbox" [checked]="permisos().crearEventos"
-                          (change)="marcarPermiso('crearEventos', $any($event.target).checked)"> Crear eventos</label>
-            <label><input type="checkbox" [checked]="permisos().crearCursos"
-                          (change)="marcarPermiso('crearCursos', $any($event.target).checked)"> Crear cursos</label>
-            <label><input type="checkbox" [checked]="permisos().publicarArticulos"
-                          (change)="marcarPermiso('publicarArticulos', $any($event.target).checked)"> Enviar artículos</label>
-            <label><input type="checkbox" [checked]="permisos().editarBiografia"
-                          (change)="marcarPermiso('editarBiografia', $any($event.target).checked)"> Editar biografía</label>
-            <button type="button" class="adm-btn adm-btn--oro" [disabled]="procesando()" (click)="guardarPermisos(u)">Guardar permisos</button>
+        <section class="adm-panel permisos-panel" aria-labelledby="permisos-titulo">
+          <div class="permisos-encabezado">
+            <h3 id="permisos-titulo">Permisos de contenido</h3>
+            <p class="adm-ayuda">Configura lo que puede gestionar este miembro. Todas las publicaciones seguirán sujetas a moderación.</p>
+          </div>
+          <div class="permisos-lista">
+            <label class="permiso-fila">
+              <span class="permiso-info">
+                <strong>Crear eventos</strong>
+                <small>Enviar eventos a revisión.</small>
+              </span>
+              <input class="permiso-check" type="checkbox" [checked]="permisos().crearEventos"
+                     (change)="marcarPermiso('crearEventos', $any($event.target).checked)">
+            </label>
+            <label class="permiso-fila">
+              <span class="permiso-info">
+                <strong>Crear cursos</strong>
+                <small>Proponer cursos y talleres.</small>
+              </span>
+              <input class="permiso-check" type="checkbox" [checked]="permisos().crearCursos"
+                     (change)="marcarPermiso('crearCursos', $any($event.target).checked)">
+            </label>
+            <label class="permiso-fila">
+              <span class="permiso-info">
+                <strong>Enviar artículos</strong>
+                <small>Preparar contenidos para revisión.</small>
+              </span>
+              <input class="permiso-check" type="checkbox" [checked]="permisos().publicarArticulos"
+                     (change)="marcarPermiso('publicarArticulos', $any($event.target).checked)">
+            </label>
+            <label class="permiso-fila">
+              <span class="permiso-info">
+                <strong>Editar biografía</strong>
+                <small>Actualizar los datos del perfil autorizado.</small>
+              </span>
+              <input class="permiso-check" type="checkbox" [checked]="permisos().editarBiografia"
+                     (change)="marcarPermiso('editarBiografia', $any($event.target).checked)">
+            </label>
+          </div>
+          <div class="permisos-acciones">
+            <button type="button" class="adm-btn adm-btn--oro" [disabled]="procesando()"
+                    (click)="guardarPermisos(u)">Guardar permisos</button>
           </div>
         </section>
         <section class="adm-panel">
@@ -179,7 +208,28 @@ import { MiembroAdmin, MiembrosAdminService, PerfilMiembro, PermisosMiembro, Reg
         }
       </section>
     }
-  `
+  `,
+  styles: [`
+    .permisos-panel { padding: 24px; }
+    .permisos-encabezado h3 { margin: 0 0 6px; font-size: 1.13rem; }
+    .permisos-encabezado .adm-ayuda { margin: 0 0 18px; line-height: 1.5; }
+    .permisos-lista { max-width: 720px; border: 1px solid #e7dfd3; border-radius: 10px; overflow: hidden; background: #fff; }
+    .permiso-fila { display: grid; grid-template-columns: minmax(0, 1fr) 22px; gap: 20px; align-items: center; padding: 13px 18px; cursor: pointer; min-height: 60px; }
+    .permiso-fila + .permiso-fila { border-top: 1px solid #eee8df; }
+    .permiso-fila:hover { background: #fcfaf6; }
+    .permiso-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .permiso-info strong { font-size: .93rem; line-height: 1.3; font-weight: 600; }
+    .permiso-info small { font-size: .8rem; line-height: 1.4; color: #6c6258; font-weight: 400; }
+    .permisos-lista .permiso-check { appearance: auto !important; width: 18px !important; height: 18px !important; min-width: 18px !important; min-height: 18px !important; max-width: 18px !important; margin: 0 !important; padding: 0 !important; border-radius: 3px; accent-color: #a67a3a; justify-self: end; cursor: pointer; box-shadow: none; }
+    .permisos-lista .permiso-check:focus-visible { outline: 2px solid #a67a3a; outline-offset: 3px; }
+    .permisos-acciones { display: flex; justify-content: flex-end; margin-top: 18px; }
+    .permisos-acciones .adm-btn { width: auto; min-width: 172px; padding: 10px 22px; }
+    @media (max-width: 600px) {
+      .permisos-panel { padding: 16px; }
+      .permiso-fila { gap: 12px; padding: 12px; }
+      .permisos-acciones .adm-btn { width: 100%; }
+    }
+  `]
 })
 export class MiembrosAdminComponent implements OnInit {
   private readonly api = inject(MiembrosAdminService);
