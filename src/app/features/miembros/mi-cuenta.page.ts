@@ -23,8 +23,8 @@ import { MiembroAuthService } from './miembro-auth.service';
           </article>
           <article>
             <h2>Mis eventos</h2>
-            <p>Estamos preparando la creación y seguimiento de eventos con moderación administrativa.</p>
-            <a routerLink="/eventos">Ver agenda pública</a>
+            <p>Crea tus eventos, guarda borradores y envíalos a revisión.</p>
+            <a routerLink="/mi-cuenta/eventos">Gestionar mis eventos</a>
           </article>
           <article>
             <h2>Publicaciones y difusión</h2>
