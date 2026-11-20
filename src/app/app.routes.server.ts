@@ -13,6 +13,9 @@ export const serverRoutes: ServerRoute[] = [
   // Zona privada de miembros: solo se renderiza en el navegador.
   { path: 'verificar-correo', renderMode: RenderMode.Client },
   { path: 'acceso', renderMode: RenderMode.Client },
+  { path: 'mi-cuenta/eventos', renderMode: RenderMode.Client },
+  { path: 'mi-cuenta/eventos/nuevo', renderMode: RenderMode.Client },
+  { path: 'mi-cuenta/eventos/:id/editar', renderMode: RenderMode.Client },
   { path: 'mi-cuenta/perfil', renderMode: RenderMode.Client },
   { path: 'mi-cuenta', renderMode: RenderMode.Client },
   // Registro preliminar: ruta pública válida, sin habilitar las altas ni indexarla.
