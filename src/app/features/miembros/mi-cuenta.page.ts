@@ -18,7 +18,8 @@ import { MiembroAuthService } from './miembro-auth.service';
         <section class="tarjetas">
           <article>
             <h2>Mi perfil</h2>
-            <p>La edición de perfiles profesionales se habilitará en la siguiente fase.</p>
+            <p>Añade tu imagen, nombre artístico, descripción breve y localidad.</p>
+            <a routerLink="/mi-cuenta/perfil">Editar mi perfil</a>
           </article>
           <article>
             <h2>Mis eventos</h2>
