@@ -64,7 +64,7 @@ import { BaseDatosAdminService, ColumnaSql, PaginaSql, TablaSql } from './base-d
             @if (!datos.filas.length) {
               <div class="explorador__vacio"><p>Esta página no contiene registros.</p></div>
             } @else {
-              <div class="explorador__tabla" tabindex="0" role="region" aria-label="Datos de la tabla {{ datos.tabla }}">
+              <div class="explorador__tabla" tabindex="0" role="region" [attr.aria-label]="'Datos de la tabla ' + datos.tabla">
                 <table>
                   <thead><tr>
                     @for (col of visibles(); track col.nombre) {
