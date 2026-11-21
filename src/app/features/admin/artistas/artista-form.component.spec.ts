@@ -80,6 +80,28 @@ describe('ArtistaFormComponent', () => {
     expect(componente.hayCambiosSinGuardar()).toBe(false);
   });
 
+  it('vincula un artista al municipio oficial al guardar y mantiene la provincia', () => {
+    crear('7');
+    backend.expectOne('/api/v1/admin/artistas/7').flush(ARTISTA);
+    backend.expectOne('/api/v1/admin/territorio/artistas/7/municipios').flush([]);
+    componente.busquedaMunicipio.set('Utrera');
+    componente.buscarMunicipios();
+    const busqueda = backend.expectOne(req => req.url === '/api/v1/territorio/municipios');
+    expect(busqueda.request.params.get('provinciaId')).toBe('41');
+    expect(busqueda.request.params.get('q')).toBe('Utrera');
+    busqueda.flush([{id: 123, nombre: 'Utrera', provincia: 'Sevilla', region: 'Andalucía'}]);
+    componente.seleccionarMunicipio({target: {value: '123'}} as unknown as Event);
+    expect(componente.form.controls.localidad.value).toBe('Utrera');
+    componente.guardar();
+    const guardar = backend.expectOne('/api/v1/admin/artistas/7');
+    expect(guardar.request.body.localidad).toBe('Utrera');
+    guardar.flush({...ARTISTA, localidad: 'Utrera'});
+    const geografia = backend.expectOne('/api/v1/admin/territorio/artistas/7/ubicacion');
+    expect(geografia.request.method).toBe('PUT');
+    expect(geografia.request.body).toEqual({ municipioId: 123, tipo: 'ORIGEN' });
+    geografia.flush(null);
+  });
+
   it('muestra en cada campo los errores que devuelve Spring', () => {
     crear();
     componente.form.patchValue({ nombre: 'Ana', disciplina: 'Baile', provincia: 'Sevilla' });
