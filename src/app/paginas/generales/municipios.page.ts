@@ -187,6 +187,7 @@ export class MunicipiosPage implements OnDestroy {
 
   alEscribir(texto: string): void {
     this.consulta.set(texto);
+    this.municipios.set([]);
     clearTimeout(this.temporizador);
     ++this.revisionBusqueda;
     this.error.set('');
