@@ -37,6 +37,8 @@ export const SECCIONES = {
     'Tablaos donde ver flamenco en directo.'),
   festivales: s('/revista/festivales', 'Festivales', 'Festivales flamencos', 'Festivales',
     'Festivales flamencos: programación, fechas y lugares.'),
+  municipios: s('/municipios', 'Municipios', 'Municipios del Flamenco', 'Municipios del Flamenco',
+    'Descubre artistas, peñas y cultura flamenca por municipios, provincias y comunidades.'),
   eventos: s('/eventos', 'Eventos', 'Agenda flamenca', 'Próximos eventos',
     'Agenda de espectáculos, recitales y festivales flamencos verificados.'),
   servicios: s('/servicios', 'Servicios', 'Servicios', 'Servicios',
@@ -66,6 +68,7 @@ export const NAVEGACION: ElementoNav[] = [
   FLAMENCO,
   REVISTA,
   enlace('eventos'),
+  enlace('municipios'),
   enlace('servicios'),
   enlace('contacto')
 ];
