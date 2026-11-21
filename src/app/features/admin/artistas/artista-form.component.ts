@@ -121,7 +121,7 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
             @if (municipioId()) { <p class="adm-ayuda">Municipio seleccionado: {{ form.controls.localidad.value }} · provincia de {{ form.controls.provincia.value }}.</p> }
             @else if (form.controls.localidad.value) { <p class="adm-campo__error">Ubicación antigua sin verificar: {{ form.controls.localidad.value }}. Selecciona el municipio oficial para asociarlo.</p> }
             <label for="tipo-vinculo">Relación con el municipio</label>
-            <select id="tipo-vinculo" [value]="tipoVinculo()" (change)="tipoVinculo.set($any($event.target).value)">
+            <select id="tipo-vinculo" [value]="tipoVinculo()" (change)="tipoVinculo.set($any($event.target).value); form.markAsDirty()">
               <option value="ORIGEN">Origen o nacimiento</option>
               <option value="RESIDENCIA">Residencia</option>
               <option value="ACTIVIDAD">Actividad profesional</option>
