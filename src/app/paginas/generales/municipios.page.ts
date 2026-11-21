@@ -1,4 +1,5 @@
 import { afterNextRender, Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -13,6 +14,15 @@ interface Municipio {
   pais: string;
   pais_id: number;
 }
+interface EventoMunicipal {
+  id: number;
+  slug: string;
+  titulo: string;
+  tipo: string;
+  fecha_inicio: string;
+  lugar: string | null;
+  cartel_url: string | null;
+}
 interface ArtistaMunicipal {
   id: number;
   nombre: string;
@@ -25,7 +35,7 @@ interface ArtistaMunicipal {
 @Component({
   selector: 'csf-municipios',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DatePipe],
   template: `
     <section class="municipios">
       <header class="cabecera">
@@ -57,6 +67,23 @@ interface ArtistaMunicipal {
         } @else if (!cargando() && !error()) {
           <div class="vacio"><p>Aún no tenemos artistas publicados vinculados a este municipio.</p>
           <a routerLink="/registro">¿Eres artista? Regístrate</a></div>
+        }
+        <h2>Próximos eventos en {{ lugar.nombre }}</h2>
+        @if (eventos().length) {
+          <div class="tarjetas">
+            @for (evento of eventos(); track evento.id) {
+              <a class="tarjeta" [routerLink]="['/eventos', evento.slug]">
+                @if (evento.cartel_url) { <img [src]="evento.cartel_url" [alt]="'Cartel de ' + evento.titulo" loading="lazy"> }
+                @else { <div class="sin-foto" aria-hidden="true">♫</div> }
+                <div class="datos"><strong>{{ evento.titulo }}</strong><small>{{ evento.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}</small>
+                  @if (evento.lugar) { <span>{{ evento.lugar }}</span> }
+                </div>
+              </a>
+            }
+          </div>
+        } @else if (!cargandoEventos()) {
+          <div class="vacio"><p>De momento no hay eventos próximos publicados en este municipio.</p>
+            <a routerLink="/mi-cuenta/eventos/nuevo">Publica tu evento</a></div>
         }
         <div class="secciones">
           <section><h2>Eventos</h2><p>Próximamente podrás descubrir la agenda flamenca local.</p><a routerLink="/eventos">Consultar agenda general</a></section>
@@ -121,6 +148,8 @@ export class MunicipiosPage {
   readonly municipios = signal<Municipio[]>([]);
   readonly municipio = signal<Municipio | null>(null);
   readonly artistas = signal<ArtistaMunicipal[]>([]);
+  readonly eventos = signal<EventoMunicipal[]>([]);
+  readonly cargandoEventos = signal(true);
   readonly cargando = signal(true);
   readonly error = signal('');
 
@@ -129,6 +158,7 @@ export class MunicipiosPage {
       const id = Number(params.get('id'));
       this.municipio.set(null);
       this.artistas.set([]);
+      this.eventos.set([]);
       this.error.set('');
       if (params.has('id')) {
         if (!Number.isSafeInteger(id) || id < 1) {
@@ -159,6 +189,11 @@ export class MunicipiosPage {
     this.http.get<Municipio>('/api/v1/territorio/municipios/' + id).subscribe({
       next: lugar => {
         this.municipio.set(lugar);
+        this.cargandoEventos.set(true);
+        this.http.get<EventoMunicipal[]>('/api/v1/territorio/municipios/' + id + '/eventos').subscribe({
+          next: rows => { this.eventos.set(rows); this.cargandoEventos.set(false); },
+          error: () => { this.eventos.set([]); this.cargandoEventos.set(false); }
+        });
         this.http.get<ArtistaMunicipal[]>('/api/v1/territorio/artistas', {
           params: new HttpParams().set('nivel', 'municipio').set('id', id)
         }).subscribe({
