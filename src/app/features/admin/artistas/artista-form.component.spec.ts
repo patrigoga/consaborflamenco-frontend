@@ -38,7 +38,7 @@ describe('ArtistaFormComponent', () => {
 
   afterEach(() => {
     // La ficha consulta opcionalmente los vínculos oficiales después de cargar o guardar.
-    backend.match(req => /\\/api\\/v1\\/admin\\/territorio\\/artistas\\/\\d+\\/municipios$/.test(req.url)).forEach(req => req.flush([]));
+    backend.match(req => req.url.startsWith('/api/v1/admin/territorio/artistas/') && req.url.endsWith('/municipios')).forEach(req => req.flush([]));
     backend.verify();
   });
 
