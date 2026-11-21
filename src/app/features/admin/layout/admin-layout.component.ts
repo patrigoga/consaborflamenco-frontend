@@ -32,6 +32,7 @@ import { AvisosService } from '../core/avisos.service';
           <li><a routerLink="/admin/municipios" routerLinkActive="activo">Municipios</a></li>
           <li><a routerLink="/admin/publicidad-municipal" routerLinkActive="activo">Publicidad municipal</a></li>
           @if (auth.esPrincipal()) {
+            <li><a routerLink="/admin/base-datos" routerLinkActive="activo">Base de datos</a></li>
             <li><a routerLink="/admin/cargar-datos" routerLinkActive="activo">Cargar datos</a></li>
           }
           @if (auth.esPrincipal()) {
