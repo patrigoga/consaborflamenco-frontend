@@ -63,6 +63,27 @@ describe('PromocionesMunicipiosAdminComponent', () => {
     expect(component.filas()).toEqual([]);
   });
 
+  it('no mezcla promociones de un municipio anterior si la respuesta llega después', () => {
+    component.consulta = 'Algeciras';
+    component.cargarMunicipios();
+    http.expectOne(r => r.url === '/api/v1/territorio/municipios' && r.params.get('q') === 'Algeciras')
+      .flush([{id: 2, nombre: 'Algeciras', provincia: 'Cádiz'}]);
+    const anterior = http.expectOne('/api/v1/admin/territorio/municipios/2/promociones');
+    component.consulta = 'Utrera';
+    component.cargarMunicipios();
+    http.expectOne(r => r.url === '/api/v1/territorio/municipios' && r.params.get('q') === 'Utrera')
+      .flush([{id: 5, nombre: 'Utrera', provincia: 'Sevilla'}]);
+    http.expectOne('/api/v1/admin/territorio/municipios/5/promociones').flush([]);
+    anterior.flush([{
+      tipo: 'HERO', posicion: 1, titulo: 'Anuncio anterior',
+      subtitulo: null, descripcion: null, imagen_url: null, cta_texto: null,
+      cta_url: null, anunciante: null, es_publicidad: false, activo: true,
+      visible_desde: null, visible_hasta: null
+    }]);
+    expect(component.municipioId()).toBe(5);
+    expect(component.filas()).toEqual([]);
+  });
+
   it('ignora respuestas de búsquedas anteriores para evitar selecciones equivocadas', () => {
     component.consulta = 'Algeciras';
     component.cargarMunicipios();
