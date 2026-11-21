@@ -36,6 +36,9 @@ function formularioVacio(): Formulario {
         <button type="submit">Buscar</button></div>
       </form>
       <label for="elegir-municipio">Seleccionar municipio</label>
+      @if (buscando()) { <p class="nota" role="status">Buscando municipios…</p> }
+      @else if (consulta.trim() && municipios().length === 0 && !error()) { <p class="nota" role="status">No se encontraron municipios. Comprueba la búsqueda.</p> }
+      @else if (consulta.trim() && municipios().length > 1) { <p class="nota">Hay {{ municipios().length }} coincidencias; selecciona la correcta indicando su provincia.</p> }
       <select id="elegir-municipio" [ngModel]="municipioId()" (ngModelChange)="elegirMunicipio(+$event)" name="municipio">
         <option [ngValue]="0">Seleccionar…</option>
         @for (m of municipios(); track m.id) {
@@ -111,6 +114,9 @@ export class PromocionesMunicipiosAdminComponent implements OnInit {
   private readonly http=inject(HttpClient);
   consulta='';
   readonly municipios=signal<Municipio[]>([]);
+  readonly buscando=signal(false);
+  private busquedaActual=0;
+  private cargaActual=0;
   readonly municipioId=signal(0);
   readonly error=signal('');
   readonly exito=signal('');
@@ -124,18 +130,50 @@ export class PromocionesMunicipiosAdminComponent implements OnInit {
   ngOnInit(): void { this.cargarMunicipios(); }
   buscarMunicipios(e: Event): void { e.preventDefault(); this.cargarMunicipios(); }
   cargarMunicipios(): void {
+    const busqueda = this.consulta.trim();
+    const revision = ++this.busquedaActual;
+    this.buscando.set(true);
+    this.error.set('');
     this.http.get<Municipio[]>('/api/v1/territorio/municipios',
-      {params:new HttpParams().set('q',this.consulta.trim())}).subscribe({
-      next: res=>this.municipios.set(res),
-      error:()=>this.error.set('No se han podido cargar los municipios.')
+      {params:new HttpParams().set('q',busqueda)}).subscribe({
+      next: res => {
+        if (revision !== this.busquedaActual) return;
+        this.buscando.set(false);
+        this.municipios.set(res);
+        // Si la búsqueda devuelve un único municipio, elegirlo también carga sus espacios.
+        if (busqueda && res.length === 1) {
+          this.elegirMunicipio(res[0].id);
+        } else if (!res.some(m => m.id === this.municipioId())) {
+          // Evitar mostrar anuncios del municipio anterior cuando deja de estar en resultados.
+          this.elegirMunicipio(0);
+        }
+      },
+      error: () => {
+        if (revision !== this.busquedaActual) return;
+        this.buscando.set(false);
+        this.municipios.set([]);
+        this.elegirMunicipio(0);
+        this.error.set('No se han podido cargar los municipios.');
+      }
     });
   }
   elegirMunicipio(id:number):void {
-    this.municipioId.set(id);this.filas.set([]);this.cambiarEspacio();
-    if(!id)return;
+    if (id === this.municipioId() && id !== 0) return;
+    const revision = ++this.cargaActual;
+    this.municipioId.set(id);
+    this.filas.set([]);
+    this.cambiarEspacio();
+    if (!id) return;
     this.http.get<Promocion[]>('/api/v1/admin/territorio/municipios/'+id+'/promociones').subscribe({
-      next:res=>{this.filas.set(res);this.cambiarEspacio();},
-      error:()=>this.error.set('No se han podido cargar los espacios del municipio.')
+      next:res=>{
+        if (revision !== this.cargaActual) return;
+        this.filas.set(res);
+        this.cambiarEspacio();
+      },
+      error:()=>{
+        if (revision !== this.cargaActual) return;
+        this.error.set('No se han podido cargar los espacios del municipio.');
+      }
     });
   }
   cambiarEspacio():void {
