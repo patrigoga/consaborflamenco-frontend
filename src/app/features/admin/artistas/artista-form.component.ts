@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AccionEditorial, AdminApiService } from '../core/admin-api.service';
 import { AvisosService } from '../core/avisos.service';
@@ -18,6 +19,10 @@ export const PATRON_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export function slugDesde(texto: string): string {
   return texto.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 170);
 }
+
+interface GeoProvincia { id: number; nombre: string; }
+interface GeoMunicipio { id: number; nombre: string; provincia: string; region: string; }
+interface GeoVinculo { municipio_id: number; municipio: string; provincia: string; tipo_vinculo: 'ORIGEN'|'RESIDENCIA'|'ACTIVIDAD'; }
 
 type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'biografia';
 
@@ -83,7 +88,7 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
             </div>
             <div class="adm-campo">
               <label for="provincia">Provincia</label>
-              <select id="provincia" formControlName="provincia" [attr.aria-invalid]="!!error('provincia')" aria-describedby="provincia-error">
+              <select id="provincia" formControlName="provincia" (change)="alCambiarProvincia()" [attr.aria-invalid]="!!error('provincia')" aria-describedby="provincia-error">
                 <option value="" disabled>Elige una provincia</option>
                 @for (p of catalogos()?.provincias ?? []; track p) { <option [value]="p">{{ p }}</option> }
                 @if (valorFueraDeCatalogo('provincia')) { <option [value]="form.controls.provincia.value">{{ form.controls.provincia.value }} (valor antiguo)</option> }
@@ -93,9 +98,35 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
           </div>
 
           <div class="adm-campo">
-            <label for="localidad">Localidad (opcional)</label>
-            <input id="localidad" formControlName="localidad" maxlength="120" autocomplete="address-level2" placeholder="Ej.: Montilla" [attr.aria-invalid]="!!error('localidad')">
-            @if (error('localidad')) { <p class="adm-campo__error">{{ error('localidad') }}</p> }
+            <label for="municipio-buscar">Municipio oficial (sin escritura libre)</label>
+            <p class="adm-ayuda">Elige la provincia, busca el municipio y selecciónalo de la lista oficial del INE.</p>
+            <div class="adm-campos-par">
+              <div>
+                <input id="municipio-buscar" type="search" maxlength="100" [value]="busquedaMunicipio()"
+                       (input)="busquedaMunicipio.set($any($event.target).value)"
+                       (keydown.enter)="$event.preventDefault(); buscarMunicipios()"
+                       placeholder="Ej.: Montilla">
+                <button class="adm-btn adm-btn--quieto" type="button" (click)="buscarMunicipios()">Buscar municipio</button>
+              </div>
+              <div>
+                <select id="localidad" [value]="municipioId() ?? ''" (change)="seleccionarMunicipio($event)"
+                        [attr.aria-invalid]="!!error('localidad')">
+                  <option value="">Selecciona un municipio</option>
+                  @for (m of municipiosGeo(); track m.id) {
+                    <option [value]="m.id">{{ m.nombre }} ({{ m.provincia }})</option>
+                  }
+                </select>
+              </div>
+            </div>
+            @if (municipioId()) { <p class="adm-ayuda">Municipio seleccionado: {{ form.controls.localidad.value }} · provincia de {{ form.controls.provincia.value }}.</p> }
+            @else if (form.controls.localidad.value) { <p class="adm-campo__error">Ubicación antigua sin verificar: {{ form.controls.localidad.value }}. Selecciona el municipio oficial para asociarlo.</p> }
+            <label for="tipo-vinculo">Relación con el municipio</label>
+            <select id="tipo-vinculo" [value]="tipoVinculo()" (change)="tipoVinculo.set($any($event.target).value); form.markAsDirty()">
+              <option value="ORIGEN">Origen o nacimiento</option>
+              <option value="RESIDENCIA">Residencia</option>
+              <option value="ACTIVIDAD">Actividad profesional</option>
+            </select>
+            @if (errorGeo()) { <p role="alert" class="adm-campo__error">{{ errorGeo() }}</p> }
           </div>
 
           <div class="adm-campo">
@@ -160,6 +191,7 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
 export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(AdminApiService);
+  private readonly http = inject(HttpClient);
   private readonly avisos = inject(AvisosService);
   private readonly confirmacion = inject(ConfirmacionService);
   private readonly router = inject(Router);
@@ -170,6 +202,12 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
 
   readonly artista = signal<ArtistaAdmin | null>(null);
   readonly catalogos = signal<Catalogos | null>(null);
+  readonly provinciasGeo = signal<GeoProvincia[]>([]);
+  readonly municipiosGeo = signal<GeoMunicipio[]>([]);
+  readonly municipioId = signal<number | null>(null);
+  readonly busquedaMunicipio = signal('');
+  readonly tipoVinculo = signal<'ORIGEN'|'RESIDENCIA'|'ACTIVIDAD'>('ORIGEN');
+  readonly errorGeo = signal('');
   readonly guardando = signal(false);
   readonly ocupado = signal(false);
   readonly errorCarga = signal<string | null>(null);
@@ -201,6 +239,10 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
 
   ngOnInit(): void {
     this.api.catalogos().subscribe({ next: c => this.catalogos.set(c), error: e => this.errorCarga.set(mensajeDe(e)) });
+    this.http.get<GeoProvincia[]>('/api/v1/territorio/provincias').subscribe({
+      next: rows => this.provinciasGeo.set(rows),
+      error: () => this.errorGeo.set('No se pudo cargar el catálogo geográfico.')
+    });
     const id = Number(this.id());
     if (this.id() && Number.isInteger(id) && id > 0) {
       this.api.obtener(id).subscribe({
@@ -210,6 +252,45 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
     } else if (this.id()) {
       this.errorCarga.set('La dirección no corresponde a ningún artista.');
     }
+  }
+
+  /** El texto buscado no se guarda como municipio: solo un identificador elegido del catálogo. */
+  buscarMunicipios(): void {
+    this.errorGeo.set('');
+    const provincia = this.provinciasGeo().find(p => this.normalizar(p.nombre) === this.normalizar(this.form.controls.provincia.value));
+    if (!provincia) {
+      this.errorGeo.set('La provincia no figura en el catálogo oficial. Revísala antes de buscar.');
+      return;
+    }
+    let params = new HttpParams().set('provinciaId', provincia.id).set('q', this.busquedaMunicipio().trim());
+    this.http.get<GeoMunicipio[]>('/api/v1/territorio/municipios', {params}).subscribe({
+      next: rows => {
+        this.municipiosGeo.set(rows);
+        if (this.municipioId() && !rows.some(m => m.id === this.municipioId())) this.municipioId.set(null);
+      },
+      error: () => this.errorGeo.set('No se han podido consultar los municipios.')
+    });
+  }
+
+  alCambiarProvincia(): void {
+    this.municipioId.set(null);
+    this.municipiosGeo.set([]);
+    this.busquedaMunicipio.set('');
+    this.form.controls.localidad.setValue('');
+    this.form.controls.localidad.markAsDirty();
+  }
+
+  seleccionarMunicipio(event: Event): void {
+    const id = Number((event.target as HTMLSelectElement).value);
+    const elegido = this.municipiosGeo().find(m => m.id === id);
+    this.municipioId.set(elegido?.id ?? null);
+    this.form.controls.localidad.setValue(elegido?.nombre ?? '');
+    this.form.controls.localidad.markAsDirty();
+    this.errorGeo.set('');
+  }
+
+  private normalizar(valor: string): string {
+    return valor.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().trim();
   }
 
   hayCambiosSinGuardar(): boolean { return this.form.dirty && !this.guardando(); }
@@ -244,6 +325,10 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
       this.enfocarPrimerError();
       return;
     }
+    if (this.form.controls.localidad.value && !this.municipioId()) {
+      this.errorGeo.set('Selecciona el municipio oficial en la lista, no basta con escribir su nombre.');
+      return;
+    }
     const v = this.form.getRawValue();
     const datos: ArtistaPeticion = {
       nombre: v.nombre.trim(),
@@ -258,14 +343,27 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
     this.guardando.set(true);
     (actual ? this.api.actualizar(actual.id, datos) : this.api.crear(datos)).subscribe({
       next: a => {
-        this.guardando.set(false);
-        this.cargar(a);
-        if (actual) {
-          this.avisos.ok('Cambios guardados.');
-        } else {
-          this.avisos.ok('Borrador creado. Ya puedes añadir la fotografía.');
-          this.router.navigate(['/admin/artistas', a.id], { replaceUrl: true });
-        }
+        const finalizar = () => {
+          this.guardando.set(false);
+          this.cargar(a);
+          if (actual) this.avisos.ok('Cambios guardados.');
+          else {
+            this.avisos.ok('Borrador creado. Ya puedes añadir la fotografía.');
+            this.router.navigate(['/admin/artistas', a.id], { replaceUrl: true });
+          }
+        };
+        if (this.municipioId()) {
+          this.http.put<void>('/api/v1/admin/territorio/artistas/' + a.id + '/ubicacion', {
+            municipioId: this.municipioId(), tipo: this.tipoVinculo()
+          }).subscribe({
+            next: finalizar,
+            error: () => {
+              this.guardando.set(false);
+              this.errorGeneral.set('La ficha se ha guardado, pero no se pudo vincular al municipio. Vuelve a intentarlo antes de publicar.');
+              this.artista.set(a);
+            }
+          });
+        } else finalizar();
       },
       error: e => {
         this.guardando.set(false);
@@ -314,6 +412,24 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
     });
     this.erroresServidor.set({});
     this.intentado.set(false);
+    this.municipioId.set(null);
+    this.busquedaMunicipio.set(a.localidad ?? '');
+    this.http.get<GeoVinculo[]>('/api/v1/admin/territorio/artistas/' + a.id + '/municipios').subscribe({
+      next: vinculos => {
+        const principal = vinculos.find(v => v.tipo_vinculo === 'ORIGEN')
+          ?? vinculos.find(v => v.tipo_vinculo === 'RESIDENCIA') ?? vinculos[0];
+        if (principal) {
+          this.municipioId.set(principal.municipio_id);
+          this.tipoVinculo.set(principal.tipo_vinculo);
+          this.busquedaMunicipio.set(principal.municipio);
+          this.municipiosGeo.set([{
+            id: principal.municipio_id, nombre: principal.municipio,
+            provincia: principal.provincia, region: ''
+          }]);
+        }
+      },
+      error: () => this.errorGeo.set('No se pudo consultar la vinculación territorial.')
+    });
     if (a.archivado) this.form.disable(); else this.form.enable();
   }
 
