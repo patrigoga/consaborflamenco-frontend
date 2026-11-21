@@ -57,7 +57,7 @@ import { BaseDatosAdminService, ColumnaSql, PaginaSql, TablaSql } from './base-d
             <button type="button" class="adm-btn adm-btn--quieto" [disabled]="cargandoDatos()" (click)="limpiar()">Limpiar</button>
           </form>
           @if (cargandoDatos()) { <p role="status">Cargando registros…</p> }
-          @else if (contenido(); as datos) {
+          @if (contenido(); as datos) {
             @if (ocultas().length) {
               <p class="explorador__aviso">Ocultas por seguridad: {{ ocultas().join(', ') }}.</p>
             }
@@ -182,6 +182,7 @@ export class BaseDatosAdminComponent implements OnInit {
     const tabla = this.seleccionada();
     if (!tabla) return;
     this.cargandoDatos.set(true);
+    this.contenido.set(null);
     this.error.set('');
     this.api.contenido(tabla, this.pagina(), 25, this.busqueda()).subscribe({
       next: datos => {
