@@ -39,10 +39,10 @@ function formularioVacio(): Formulario {
       @if (buscando()) { <p class="nota" role="status">Buscando municipios…</p> }
       @else if (consulta.trim() && municipios().length === 0 && !error()) { <p class="nota" role="status">No se encontraron municipios. Comprueba la búsqueda.</p> }
       @else if (consulta.trim() && municipios().length > 1) { <p class="nota">Hay {{ municipios().length }} coincidencias; selecciona la correcta indicando su provincia.</p> }
-      <select id="elegir-municipio" [ngModel]="municipioId()" (ngModelChange)="elegirMunicipio(+$event)" name="municipio">
-        <option [ngValue]="0">Seleccionar…</option>
+      <select id="elegir-municipio" [value]="municipioId()" (change)="elegirMunicipio(+$any($event.target).value)" name="municipio">
+        <option value="0">Seleccionar…</option>
         @for (m of municipios(); track m.id) {
-          <option [ngValue]="m.id">{{ m.nombre }} ({{ m.provincia }})</option>
+          <option [value]="m.id">{{ m.nombre }} ({{ m.provincia }})</option>
         }
       </select>
       @if (municipioId() > 0) {
