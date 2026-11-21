@@ -51,8 +51,7 @@ export const routes: Routes = [
           seccion('festivales', () => import('./paginas/revista/festivales.page').then(m => m.FestivalesPage))
         ]
       },
-      { path: 'municipios', title: 'Municipios del Flamenco – ConSaborFlamenco',
-        loadComponent: () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage) },
+      seccion('municipios', () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage)),
       { path: 'municipios/:id', title: 'Municipio flamenco – ConSaborFlamenco',
         loadComponent: () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage) },
       seccion('eventos', () => import('./paginas/generales/eventos.page').then(m => m.EventosPage)),
