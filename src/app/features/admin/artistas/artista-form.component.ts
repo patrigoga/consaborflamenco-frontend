@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -103,7 +103,7 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
             <div class="adm-campos-par">
               <div>
                 <input id="municipio-buscar" type="search" maxlength="100" [value]="busquedaMunicipio()"
-                       (input)="busquedaMunicipio.set($any($event.target).value)"
+                       (input)="alEscribirMunicipio($any($event.target).value)"
                        (keydown.enter)="$event.preventDefault(); buscarMunicipios()"
                        placeholder="Ej.: Montilla">
                 <button class="adm-btn adm-btn--quieto" type="button" (click)="buscarMunicipios()">Buscar municipio</button>
@@ -118,6 +118,8 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
                 </select>
               </div>
             </div>
+            @if (buscandoGeo()) { <p class="adm-ayuda" role="status">Buscando municipios…</p> }
+            @if (!buscandoGeo() && busquedaMunicipio().trim() && !municipiosGeo().length && !errorGeo()) { <p class="adm-ayuda">No hay resultados. Comprueba la provincia o el nombre.</p> }
             @if (municipioId()) { <p class="adm-ayuda">Municipio seleccionado: {{ form.controls.localidad.value }} · provincia de {{ form.controls.provincia.value }}.</p> }
             @else if (form.controls.localidad.value) { <p class="adm-campo__error">Ubicación antigua sin verificar: {{ form.controls.localidad.value }}. Selecciona el municipio oficial para asociarlo.</p> }
             <label for="tipo-vinculo">Relación con el municipio</label>
@@ -188,7 +190,7 @@ type Campo = 'nombre' | 'slug' | 'disciplina' | 'provincia' | 'localidad' | 'bio
     }
   `
 })
-export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
+export class ArtistaFormComponent implements OnInit, OnDestroy, ConCambiosPendientes {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(AdminApiService);
   private readonly http = inject(HttpClient);
@@ -208,6 +210,9 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
   readonly busquedaMunicipio = signal('');
   readonly tipoVinculo = signal<'ORIGEN'|'RESIDENCIA'|'ACTIVIDAD'>('ORIGEN');
   readonly errorGeo = signal('');
+  readonly buscandoGeo = signal(false);
+  private temporizadorGeo?: ReturnType<typeof setTimeout>;
+  private revisionGeo = 0;
   readonly guardando = signal(false);
   readonly ocupado = signal(false);
   readonly errorCarga = signal<string | null>(null);
@@ -254,25 +259,62 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
     }
   }
 
+  ngOnDestroy(): void {
+    clearTimeout(this.temporizadorGeo);
+    ++this.revisionGeo;
+  }
+
+  alEscribirMunicipio(texto: string): void {
+    this.busquedaMunicipio.set(texto);
+    clearTimeout(this.temporizadorGeo);
+    ++this.revisionGeo;
+    this.errorGeo.set('');
+    this.municipioId.set(null);
+    this.municipiosGeo.set([]);
+    this.buscandoGeo.set(false);
+    // La selección oficial anterior deja de ser válida al editar el texto.
+    if (this.form.controls.localidad.value) {
+      this.form.controls.localidad.setValue('');
+      this.form.controls.localidad.markAsDirty();
+    }
+    if (!texto.trim()) return;
+    this.buscandoGeo.set(true);
+    this.temporizadorGeo = setTimeout(() => this.buscarMunicipios(), 300);
+  }
+
   /** El texto buscado no se guarda como municipio: solo un identificador elegido del catálogo. */
   buscarMunicipios(): void {
+    clearTimeout(this.temporizadorGeo);
+    const revision = ++this.revisionGeo;
+    const termino = this.busquedaMunicipio().trim();
+    if (!termino) { this.municipiosGeo.set([]); this.buscandoGeo.set(false); return; }
     this.errorGeo.set('');
     const provincia = this.provinciasGeo().find(p => this.normalizar(p.nombre) === this.normalizar(this.form.controls.provincia.value));
     if (!provincia) {
       this.errorGeo.set('La provincia no figura en el catálogo oficial. Revísala antes de buscar.');
+      this.buscandoGeo.set(false);
       return;
     }
-    let params = new HttpParams().set('provinciaId', provincia.id).set('q', this.busquedaMunicipio().trim());
+    this.buscandoGeo.set(true);
+    const params = new HttpParams().set('provinciaId', provincia.id).set('q', termino);
     this.http.get<GeoMunicipio[]>('/api/v1/territorio/municipios', {params}).subscribe({
       next: rows => {
+        if (revision !== this.revisionGeo) return;
+        this.buscandoGeo.set(false);
         this.municipiosGeo.set(rows);
-        if (this.municipioId() && !rows.some(m => m.id === this.municipioId())) this.municipioId.set(null);
       },
-      error: () => this.errorGeo.set('No se han podido consultar los municipios.')
+      error: () => {
+        if (revision !== this.revisionGeo) return;
+        this.buscandoGeo.set(false);
+        this.errorGeo.set('No se han podido consultar los municipios.');
+      }
     });
   }
 
   alCambiarProvincia(): void {
+    clearTimeout(this.temporizadorGeo);
+    ++this.revisionGeo;
+    this.buscandoGeo.set(false);
     this.municipioId.set(null);
     this.municipiosGeo.set([]);
     this.busquedaMunicipio.set('');
@@ -283,7 +325,11 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
   seleccionarMunicipio(event: Event): void {
     const id = Number((event.target as HTMLSelectElement).value);
     const elegido = this.municipiosGeo().find(m => m.id === id);
+    clearTimeout(this.temporizadorGeo);
+    ++this.revisionGeo;
+    this.buscandoGeo.set(false);
     this.municipioId.set(elegido?.id ?? null);
+    if (elegido) this.busquedaMunicipio.set(elegido.nombre);
     this.form.controls.localidad.setValue(elegido?.nombre ?? '');
     this.form.controls.localidad.markAsDirty();
     this.errorGeo.set('');

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -32,7 +32,7 @@ function formularioVacio(): Formulario {
 
       <form class="localizador" (submit)="buscarMunicipios($event)">
         <label for="buscar-municipio">Buscar municipio</label>
-        <div><input id="buscar-municipio" name="buscar" [(ngModel)]="consulta" maxlength="100" placeholder="Montilla, Utrera…">
+        <div><input id="buscar-municipio" name="buscar" [(ngModel)]="consulta" (ngModelChange)="programarBusqueda()" maxlength="100" placeholder="Montilla, Utrera…">
         <button type="submit">Buscar</button></div>
       </form>
       <label for="elegir-municipio">Seleccionar municipio</label>
@@ -110,12 +110,13 @@ function formularioVacio(): Formulario {
     @media(max-width:650px){.dos,.posiciones{grid-template-columns:1fr}.localizador div{flex-direction:column}}
   `]
 })
-export class PromocionesMunicipiosAdminComponent implements OnInit {
+export class PromocionesMunicipiosAdminComponent implements OnInit, OnDestroy {
   private readonly http=inject(HttpClient);
   consulta='';
   readonly municipios=signal<Municipio[]>([]);
   readonly buscando=signal(false);
   private busquedaActual=0;
+  private temporizadorBusqueda?: ReturnType<typeof setTimeout>;
   private cargaActual=0;
   readonly municipioId=signal(0);
   readonly error=signal('');
@@ -128,8 +129,25 @@ export class PromocionesMunicipiosAdminComponent implements OnInit {
   datos: Formulario=formularioVacio();
 
   ngOnInit(): void { this.cargarMunicipios(); }
-  buscarMunicipios(e: Event): void { e.preventDefault(); this.cargarMunicipios(); }
+  ngOnDestroy(): void {
+    clearTimeout(this.temporizadorBusqueda);
+    ++this.busquedaActual;
+    ++this.cargaActual;
+  }
+  /** Evita consultar el backend por cada tecla y descarta búsquedas anteriores. */
+  programarBusqueda(): void {
+    clearTimeout(this.temporizadorBusqueda);
+    ++this.busquedaActual;
+    this.buscando.set(true);
+    this.temporizadorBusqueda = setTimeout(() => this.cargarMunicipios(), 300);
+  }
+  buscarMunicipios(e: Event): void {
+    e.preventDefault();
+    clearTimeout(this.temporizadorBusqueda);
+    this.cargarMunicipios();
+  }
   cargarMunicipios(): void {
+    clearTimeout(this.temporizadorBusqueda);
     const busqueda = this.consulta.trim();
     const revision = ++this.busquedaActual;
     this.buscando.set(true);

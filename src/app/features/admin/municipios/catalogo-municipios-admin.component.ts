@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -21,7 +21,7 @@ interface Municipio { id: number; nombre: string; provincia: string; region: str
     </select>
    </label>
    <label>Buscar localidad o municipio
-    <input type="search" name="q" [(ngModel)]="texto" maxlength="100" placeholder="Montilla, Elda, Utrera…">
+    <input type="search" name="q" [(ngModel)]="texto" (ngModelChange)="programarBusqueda()" maxlength="100" placeholder="Montilla, Elda, Utrera…">
    </label>
    <button type="submit">Buscar</button>
   </form>
@@ -52,14 +52,26 @@ interface Municipio { id: number; nombre: string; provincia: string; region: str
  @media(max-width:700px){.filtros{grid-template-columns:1fr}}
  `]
 })
-export class CatalogoMunicipiosAdminComponent implements OnInit {
+export class CatalogoMunicipiosAdminComponent implements OnInit, OnDestroy {
  private readonly http=inject(HttpClient);
+ private temporizadorBusqueda?: ReturnType<typeof setTimeout>;
+ private revisionBusqueda=0;
  readonly provincias=signal<Provincia[]>([]);
  readonly municipios=signal<Municipio[]>([]);
  readonly cargando=signal(false);
  readonly error=signal('');
  provinciaId=0;
  texto='';
+ ngOnDestroy():void {
+  clearTimeout(this.temporizadorBusqueda);
+  ++this.revisionBusqueda;
+ }
+ programarBusqueda():void {
+  clearTimeout(this.temporizadorBusqueda);
+  ++this.revisionBusqueda;
+  this.cargando.set(true);
+  this.temporizadorBusqueda=setTimeout(()=>this.buscar(),300);
+ }
  ngOnInit():void {
   this.http.get<Provincia[]>('/api/v1/territorio/provincias').subscribe({
    next:items=>this.provincias.set(items),
@@ -68,12 +80,21 @@ export class CatalogoMunicipiosAdminComponent implements OnInit {
   this.buscar();
  }
  buscar():void {
+  clearTimeout(this.temporizadorBusqueda);
+  const revision=++this.revisionBusqueda;
   this.cargando.set(true);this.error.set('');
   let params=new HttpParams().set('q',this.texto.trim());
   if(this.provinciaId)params=params.set('provinciaId',this.provinciaId);
   this.http.get<Municipio[]>('/api/v1/territorio/municipios',{params}).subscribe({
-   next:items=>{this.municipios.set(items);this.cargando.set(false);},
-   error:()=>{this.error.set('No se han podido consultar los municipios.');this.cargando.set(false);}
+   next:items=>{
+    if(revision!==this.revisionBusqueda)return;
+    this.municipios.set(items);this.cargando.set(false);
+   },
+   error:()=>{
+    if(revision!==this.revisionBusqueda)return;
+    this.error.set('No se han podido consultar los municipios.');
+    this.cargando.set(false);
+   }
   });
  }
 }
