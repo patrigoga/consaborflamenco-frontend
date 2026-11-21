@@ -29,7 +29,8 @@ import { AvisosService } from '../core/avisos.service';
           <li><a routerLink="/admin/eventos" routerLinkActive="activo">Eventos</a></li>
           <li><a routerLink="/admin/consagrados" routerLinkActive="activo">Artistas consagrados</a></li>
           <li><a routerLink="/admin/destacados" routerLinkActive="activo">Destacados</a></li>
-          <li><a routerLink="/admin/municipios" routerLinkActive="activo">Municipios y banners</a></li>
+          <li><a routerLink="/admin/municipios" routerLinkActive="activo">Municipios</a></li>
+          <li><a routerLink="/admin/publicidad-municipal" routerLinkActive="activo">Publicidad municipal</a></li>
           @if (auth.esPrincipal()) {
             <li><a routerLink="/admin/cargar-datos" routerLinkActive="activo">Cargar datos</a></li>
           }
