@@ -40,6 +40,8 @@ export const ADMIN_ROUTES: Routes = [
             loadComponent: () => import('./artistas/artista-form.component').then(m => m.ArtistaFormComponent) },
           { path: 'cargar-datos', title: 'Cargar datos – Panel ConSaborFlamenco', canActivate: [principalGuard],
             loadComponent: () => import('./cargar-datos/cargar-datos.component').then(m => m.CargarDatosComponent) },
+          { path: 'municipios', title: 'Publicidad municipal – Panel ConSaborFlamenco',
+            loadComponent: () => import('./municipios/promociones-municipios-admin.component').then(m => m.PromocionesMunicipiosAdminComponent) },
           { path: 'destacados', title: 'Destacados – Panel ConSaborFlamenco',
             loadComponent: () => import('./destacados/destacados.component').then(m => m.DestacadosComponent) },
           { path: 'miembros', title: 'Gestión de miembros – Panel ConSaborFlamenco', canActivate: [principalGuard],
