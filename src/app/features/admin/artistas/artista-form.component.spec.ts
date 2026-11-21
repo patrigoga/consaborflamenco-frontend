@@ -25,6 +25,7 @@ describe('ArtistaFormComponent', () => {
     if (id) fixture.componentRef.setInput('id', id);
     fixture.detectChanges();
     backend.expectOne('/api/v1/admin/catalogos').flush(CATALOGOS);
+    backend.expectOne('/api/v1/territorio/provincias').flush([{id: 41, nombre: 'Sevilla'}, {id: 11, nombre: 'Cádiz'}]);
   }
 
   beforeEach(() => {
@@ -35,7 +36,11 @@ describe('ArtistaFormComponent', () => {
     backend = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => backend.verify());
+  afterEach(() => {
+    // La ficha consulta opcionalmente los vínculos oficiales después de cargar o guardar.
+    backend.match(req => /\\/api\\/v1\\/admin\\/territorio\\/artistas\\/\\d+\\/municipios$/.test(req.url)).forEach(req => req.flush([]));
+    backend.verify();
+  });
 
   it('genera direcciones sin acentos', () => {
     expect(slugDesde('Niño de Elche')).toBe('nino-de-elche');
