@@ -1,5 +1,6 @@
 import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { PromocionesMunicipioComponent } from './promociones-municipio.component';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -35,7 +36,7 @@ interface ArtistaMunicipal {
 @Component({
   selector: 'csf-municipios',
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, PromocionesMunicipioComponent],
   template: `
     <section class="municipios">
       <header class="cabecera">
@@ -47,6 +48,7 @@ interface ArtistaMunicipal {
       @if (error()) { <p class="estado" role="alert">{{ error() }}</p> }
       @if (cargando()) { <p class="estado" role="status">Cargando municipios…</p> }
       @if (municipio(); as lugar) {
+        <csf-promociones-municipio [municipioId]="lugar.id" />
         <nav class="ruta" aria-label="Jerarquía geográfica">
           <span>{{ lugar.pais }}</span><span aria-hidden="true"> / </span>
           <span>{{ lugar.region }}</span><span aria-hidden="true"> / </span>
