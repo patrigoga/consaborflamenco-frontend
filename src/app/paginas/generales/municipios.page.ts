@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, signal } from '@angular/core';
+import { afterNextRender, Component, OnDestroy, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { PromocionesMunicipioComponent } from './promociones-municipio.component';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -95,9 +95,10 @@ interface ArtistaMunicipal {
       } @else {
         <form class="buscador" (submit)="buscar($event)">
           <label for="municipio-buscar">Busca por municipio</label>
-          <div><input id="municipio-buscar" name="q" type="search" maxlength="100" [value]="consulta()" (input)="consulta.set($any($event.target).value)" placeholder="Ej.: Montilla, Utrera…" autocomplete="off">
+          <div><input id="municipio-buscar" name="q" type="search" maxlength="100" [value]="consulta()" (input)="alEscribir($any($event.target).value)" placeholder="Ej.: Montilla, Utrera…" autocomplete="off">
           <button type="submit">Buscar</button></div>
         </form>
+        @if (buscando()) { <p class="estado" role="status">Buscando municipios…</p> }
         <div class="tarjetas localidades">
           @for (lugar of municipios(); track lugar.id) {
             <a class="tarjeta" [routerLink]="['/municipios', lugar.id]"><div class="datos">
@@ -143,10 +144,13 @@ interface ArtistaMunicipal {
     @media(max-width:600px){.buscador div{flex-direction:column}}
   `]
 })
-export class MunicipiosPage {
+export class MunicipiosPage implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   readonly consulta = signal('');
+  readonly buscando = signal(false);
+  private temporizador?: ReturnType<typeof setTimeout>;
+  private revisionBusqueda = 0;
   readonly municipios = signal<Municipio[]>([]);
   readonly municipio = signal<Municipio | null>(null);
   readonly artistas = signal<ArtistaMunicipal[]>([]);
@@ -163,6 +167,9 @@ export class MunicipiosPage {
       this.eventos.set([]);
       this.error.set('');
       if (params.has('id')) {
+        clearTimeout(this.temporizador);
+        ++this.revisionBusqueda;
+        this.buscando.set(false);
         if (!Number.isSafeInteger(id) || id < 1) {
           this.cargando.set(false);
           this.error.set('El municipio solicitado no es válido.');
@@ -173,16 +180,48 @@ export class MunicipiosPage {
     }));
   }
 
-  buscar(event: Event): void { event.preventDefault(); this.buscarMunicipios(); }
+  ngOnDestroy(): void {
+    clearTimeout(this.temporizador);
+    ++this.revisionBusqueda;
+  }
+
+  alEscribir(texto: string): void {
+    this.consulta.set(texto);
+    clearTimeout(this.temporizador);
+    ++this.revisionBusqueda;
+    this.error.set('');
+    this.buscando.set(true);
+    // La búsqueda se ejecuta mientras se escribe, sin pedir un clic.
+    this.temporizador = setTimeout(() => this.buscarMunicipios(), 300);
+  }
+
+  buscar(event: Event): void {
+    event.preventDefault();
+    clearTimeout(this.temporizador);
+    this.buscarMunicipios();
+  }
 
   private buscarMunicipios(): void {
-    this.cargando.set(true);
+    clearTimeout(this.temporizador);
+    const revision = ++this.revisionBusqueda;
+    this.buscando.set(true);
     this.error.set('');
     this.http.get<Municipio[]>('/api/v1/territorio/municipios', {
       params: new HttpParams().set('q', this.consulta().trim().slice(0, 100))
     }).subscribe({
-      next: rows => { this.municipios.set(rows); this.cargando.set(false); },
-      error: () => { this.error.set('No podemos consultar los municipios ahora.'); this.cargando.set(false); }
+      next: rows => {
+        if (revision !== this.revisionBusqueda) return;
+        this.municipios.set(rows);
+        this.buscando.set(false);
+        this.cargando.set(false);
+      },
+      error: () => {
+        if (revision !== this.revisionBusqueda) return;
+        this.municipios.set([]);
+        this.error.set('No podemos consultar los municipios ahora.');
+        this.buscando.set(false);
+        this.cargando.set(false);
+      }
     });
   }
 
