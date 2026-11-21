@@ -290,7 +290,7 @@ export class ArtistaFormComponent implements OnInit, ConCambiosPendientes {
   }
 
   private normalizar(valor: string): string {
-    return valor.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+    return valor.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase().trim();
   }
 
   hayCambiosSinGuardar(): boolean { return this.form.dirty && !this.guardando(); }
