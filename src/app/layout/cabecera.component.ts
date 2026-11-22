@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, HostListener, inject, signal } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -29,9 +29,13 @@ export class CabeceraComponent {
   private abiertoPorRaton: string | null = null;
 
   constructor() {
-    this.menuPublico.publico().subscribe({
-      next: items => { this.navegacion.set(construirMenu(items)); this.actualizarActivo(this.router.url); },
-      error: () => this.navegacion.set(MENU_INICIAL)
+    // El prerenderizado SSR no puede consultar una API relativa del backend.
+    // La configuración se solicita al navegador después de hidratar la cabecera.
+    afterNextRender(() => {
+      this.menuPublico.publico().subscribe({
+        next: items => { this.navegacion.set(construirMenu(items)); this.actualizarActivo(this.router.url); },
+        error: () => this.navegacion.set(MENU_INICIAL)
+      });
     });
     this.actualizarActivo(this.router.url);
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(inject(DestroyRef)))
