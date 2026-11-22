@@ -2,7 +2,8 @@ import { Component, DestroyRef, ElementRef, HostListener, inject, signal } from 
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
-import { ElementoNav, GrupoNav, MEMBRESIA, NAVEGACION, esGrupo } from '../navegacion';
+import { MenuPublicoService, MENU_INICIAL, construirMenu } from '../menu-publico.service';
+import { ElementoNav, GrupoNav, MEMBRESIA, esGrupo } from '../navegacion';
 
 @Component({
   selector: 'csf-cabecera',
@@ -15,7 +16,8 @@ export class CabeceraComponent {
   private readonly router = inject(Router);
   private readonly host = inject(ElementRef<HTMLElement>);
 
-  readonly navegacion = NAVEGACION;
+  private readonly menuPublico = inject(MenuPublicoService);
+  readonly navegacion = signal<ElementoNav[]>(MENU_INICIAL);
   readonly membresia = MEMBRESIA;
   readonly esGrupo = esGrupo;
   /** Menú completo abierto (móvil y tablet). */
@@ -27,6 +29,10 @@ export class CabeceraComponent {
   private abiertoPorRaton: string | null = null;
 
   constructor() {
+    this.menuPublico.publico().subscribe({
+      next: items => { this.navegacion.set(construirMenu(items)); this.actualizarActivo(this.router.url); },
+      error: () => this.navegacion.set(MENU_INICIAL)
+    });
     this.actualizarActivo(this.router.url);
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed(inject(DestroyRef)))
       .subscribe(e => {
@@ -81,7 +87,7 @@ export class CabeceraComponent {
 
   private actualizarActivo(url: string): void {
     const path = url.split(/[?#]/)[0];
-    const grupo = NAVEGACION.filter(esGrupo).find(g => path === g.base || path.startsWith(g.base + '/'));
+    const grupo = this.navegacion().filter(esGrupo).find(g => path === g.base || path.startsWith(g.base + '/'));
     this.grupoActivo.set(grupo?.texto ?? null);
   }
 }
