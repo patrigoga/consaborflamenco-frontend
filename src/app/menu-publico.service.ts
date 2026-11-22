@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ElementoNav, EnlaceNav, FLAMENCO, REVISTA, esGrupo } from './navegacion';
+import { ElementoNav, EnlaceNav, FLAMENCO, REVISTA } from './navegacion';
 
 export interface MenuItem {
   clave: string;
