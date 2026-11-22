@@ -20,7 +20,10 @@ describe('Ficha pública del artista', () => {
     TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting(), { provide: TitleStrategy, useClass: SeoTitleStrategy }] });
     backend = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => backend.verify());
+  afterEach(() => {
+    backend.match('/api/v1/menu-publico').forEach(req => req.flush([]));
+    backend.verify();
+  });
 
   it('abre el artista solicitado y crea su título y canónica sin inventar contenido multimedia', async () => {
     const harness = await RouterTestingHarness.create();

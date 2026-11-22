@@ -10,7 +10,7 @@
 
     <nav id="menu-principal" class="cab__nav" aria-label="Navegación principal">
       <ul class="cab__lista">
-        @for (e of navegacion; track e.texto) {
+        @for (e of navegacion(); track e.texto) {
           @if (esGrupo(e)) {
             @let g = comoGrupo(e);
             <li class="cab__grupo" [class.is-abierto]="grupoAbierto() === g.texto" (mouseenter)="alPasar(g, true)" (mouseleave)="alPasar(g, false)">
