@@ -26,3 +26,15 @@
 }
 
 .cinema-hero__slider-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#fff;margin-top:24px}.cinema-hero__slider-actions button{min-width:44px;height:44px;border-radius:50%;border:1px solid #e0bc7d;background:#12100b99;color:#f1cc88;font-size:26px;cursor:pointer}.cinema-hero__slider-actions button:focus-visible{outline:2px solid #fff;outline-offset:3px}.cinema-hero__slider-actions span{color:#f1d4a2;font-size:13px}.cinema-hero__slider-actions .cinema-button{margin-left:10px}
+
+
+/* La imagen de cabecera independiente se coloca POR DELANTE del fondo,
+   manteniendo la transparencia real del PNG. La fotografía de tarjetas no cambia. */
+.cinema-hero--recorte{background:radial-gradient(circle at 74% 44%,#664024,#1e130d 58%,#0f0c0a)}
+.cinema-hero--recorte:after{z-index:0;background:linear-gradient(90deg,#0d0b0ab8 0%,#0d0b0a20 55%,transparent 100%),linear-gradient(0deg,#0f0e0d 0%,transparent 25%)}
+.cinema-hero--recorte .cinema-hero__content{z-index:2}
+.cinema-hero__recorte{position:absolute;bottom:0;height:100%;width:58%;object-fit:contain;object-position:center bottom;z-index:1;pointer-events:none;transform-origin:center bottom}
+@media(max-width:760px){
+  .cinema-hero__recorte{height:73%;width:100%;max-width:none;object-position:center bottom;top:0;bottom:auto;transform-origin:center top}
+  .cinema-hero--recorte:after{background:linear-gradient(0deg,#0f0e0d 0%,#0f0e0deb 28%,#0f0e0d3b 67%,transparent 100%)}
+}

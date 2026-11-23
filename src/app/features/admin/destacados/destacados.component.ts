@@ -64,6 +64,42 @@ import { Protagonista, ProtagonistasService } from '../../home/protagonistas.ser
       </div>
       <p class="adm-nota">Al seleccionar otro artista como muy destacado, sustituirá automáticamente al anterior. No afecta a los destacados normales.</p>
     </section>
+    @if (auth.esPrincipal() && protagonista(); as p) {
+      <section class="adm-bloque" aria-label="Imagen exclusiva de cabecera">
+        <h2>Imagen de cabecera · {{ p.titulo }}</h2>
+        <p class="adm-nota">La fotografía de la tarjeta se conserva. Sube una segunda imagen PNG con fondo transparente para colocarla sobre el fondo de la cabecera.</p>
+        <div class="adm-cabecera-preview" [class.adm-cabecera-preview--recorte]="!!p.imagenCabeceraUrl">
+          @if (p.imagenCabeceraUrl) {
+            <img [src]="p.imagenCabeceraUrl" [alt]="'Vista previa de ' + p.titulo"
+              [style.right.%]="5 + (50 - posX) * 0.65"
+              [style.transform]="'translateY(' + ((50 - posY) * 0.6) + '%) scale(' + (escala / 100) + ')'">
+          } @else {
+            <img [src]="p.imagenUrl" [alt]="'Fotografía actual de ' + p.titulo" class="adm-cabecera-preview__clasica">
+          }
+          <div class="adm-cabecera-preview__texto"><strong>{{ p.titulo }}</strong><span>{{ p.descripcion }}</span></div>
+        </div>
+        <label class="adm-cabecera-upload">Imagen independiente (PNG transparente, máximo 5 MB)
+          <input type="file" accept="image/png,.png" [disabled]="subiendoImagen()" (change)="subirImagen($event)">
+        </label>
+        @if (p.imagenCabeceraUrl) {
+          <div class="adm-cabecera-ajustes">
+            <label>Posición horizontal: {{ posX }} %
+              <input type="range" min="0" max="100" [value]="posX" (input)="posX = +$any($event.target).value">
+            </label>
+            <label>Posición vertical: {{ posY }} %
+              <input type="range" min="0" max="100" [value]="posY" (input)="posY = +$any($event.target).value">
+            </label>
+            <label>Escala: {{ escala }} %
+              <input type="range" min="50" max="180" [value]="escala" (input)="escala = +$any($event.target).value">
+            </label>
+            <div class="adm-cabecera-acciones">
+              <button type="button" class="adm-btn adm-btn--oro" [disabled]="subiendoImagen()" (click)="guardarEncuadre()">Guardar encuadre</button>
+              <button type="button" class="adm-btn adm-btn--peq" [disabled]="subiendoImagen()" (click)="quitarImagen()">Quitar imagen de cabecera</button>
+            </div>
+          </div>
+        }
+      </section>
+    }
   `,
   styles: [`
     .adm-grid-artistas { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr)); gap:14px; margin-top:16px; }
@@ -73,6 +109,17 @@ import { Protagonista, ProtagonistasService } from '../../home/protagonistas.ser
     .adm-artista-opcion__estado { color:#95601b; font-size:.8rem; }
     .adm-artista-opcion__acciones { display:flex; gap:8px; flex-wrap:wrap; width:100%; }
     .adm-artista-opcion__acciones button { flex:1; }
+    .adm-cabecera-preview{height:260px;position:relative;overflow:hidden;border-radius:10px;margin:16px 0;background:radial-gradient(circle at 70% 40%,#664024,#1e130d 65%,#0f0c0a)}
+    .adm-cabecera-preview>img{height:100%;width:55%;position:absolute;right:0;bottom:0;object-fit:contain;object-position:center bottom}
+    .adm-cabecera-preview>img.adm-cabecera-preview__clasica{object-fit:cover}
+    .adm-cabecera-preview__texto{position:absolute;z-index:2;top:35%;left:5%;display:grid;gap:8px;max-width:55%;color:#fff;text-shadow:0 2px 15px #000}
+    .adm-cabecera-preview__texto strong{font:32px Georgia,serif}
+    .adm-cabecera-preview__texto span{font-size:13px}
+    .adm-cabecera-upload{display:grid;gap:8px;margin:12px 0}
+    .adm-cabecera-ajustes{display:grid;gap:12px}
+    .adm-cabecera-ajustes label{display:grid;gap:5px;max-width:400px}
+    .adm-cabecera-acciones{display:flex;gap:12px;flex-wrap:wrap}
+
   `]
 })
 export class DestacadosComponent implements OnInit {
@@ -90,6 +137,10 @@ export class DestacadosComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly aviso = signal('');
   readonly busqueda = new Subject<string>();
+  readonly subiendoImagen = signal(false);
+  posX = 50;
+  posY = 50;
+  escala = 100;
   private texto = '';
 
   constructor() {
@@ -104,8 +155,48 @@ export class DestacadosComponent implements OnInit {
     this.api.catalogos().subscribe({ next: c => this.max.set(c.maxDestacados), error: () => {} });
     this.recargar();
     this.protagonistasApi.listar().subscribe({
-      next: lista => this.protagonista.set(lista.find(p => p.tipo === 'ARTISTA') ?? null),
+      next: lista => this.actualizarProtagonista(lista.find(p => p.tipo === 'ARTISTA') ?? null),
       error: () => this.error.set('No se pudo cargar el artista protagonista.')
+    });
+  }
+
+  private actualizarProtagonista(p: Protagonista | null): void {
+    this.protagonista.set(p);
+    this.posX = p?.cabeceraPosX ?? 50;
+    this.posY = p?.cabeceraPosY ?? 50;
+    this.escala = p?.cabeceraEscala || 100;
+  }
+
+  subirImagen(evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    if (!archivo) return;
+    if (archivo.type !== 'image/png' || archivo.size > 5 * 1024 * 1024) {
+      this.error.set('Selecciona una imagen PNG transparente de hasta 5 MB.');
+      input.value = '';
+      return;
+    }
+    this.subiendoImagen.set(true); this.error.set(null);
+    this.protagonistasApi.subirImagenCabecera(archivo).subscribe({
+      next: p => { this.actualizarProtagonista(p); this.subiendoImagen.set(false);
+        this.aviso.set('Imagen de cabecera guardada. La tarjeta conserva su fotografía original.'); input.value = ''; },
+      error: () => { this.subiendoImagen.set(false); this.error.set('No se pudo subir. Comprueba que el PNG tenga transparencia real.'); input.value = ''; }
+    });
+  }
+
+  guardarEncuadre(): void {
+    this.subiendoImagen.set(true);
+    this.protagonistasApi.guardarAjustesCabecera(this.posX, this.posY, this.escala).subscribe({
+      next: p => { this.actualizarProtagonista(p); this.subiendoImagen.set(false); this.aviso.set('Encuadre actualizado.'); },
+      error: () => { this.subiendoImagen.set(false); this.error.set('No se pudo guardar el encuadre.'); }
+    });
+  }
+
+  quitarImagen(): void {
+    this.subiendoImagen.set(true);
+    this.protagonistasApi.quitarImagenCabecera().subscribe({
+      next: p => { this.actualizarProtagonista(p); this.subiendoImagen.set(false); this.aviso.set('Imagen especial retirada; se conserva la fotografía de tarjeta.'); },
+      error: () => { this.subiendoImagen.set(false); this.error.set('No se pudo retirar la imagen especial.'); }
     });
   }
 
@@ -139,7 +230,7 @@ export class DestacadosComponent implements OnInit {
     this.ocupado.set(a.id);
     if (this.esMuyDestacado(a)) {
       this.protagonistasApi.eliminar('ARTISTA').subscribe({
-        next: () => { this.protagonista.set(null); this.ocupado.set(null); this.aviso.set('Artista retirado de la cabecera.'); },
+        next: () => { this.actualizarProtagonista(null); this.ocupado.set(null); this.aviso.set('Artista retirado de la cabecera.'); },
         error: () => { this.ocupado.set(null); this.error.set('No se pudo retirar el artista de la cabecera.'); }
       });
       return;
@@ -151,7 +242,7 @@ export class DestacadosComponent implements OnInit {
       imagenUrl:a.fotoUrl, destino:'/revista/artistas'
     };
     this.protagonistasApi.guardar(item).subscribe({
-      next: guardado => { this.protagonista.set(guardado); this.ocupado.set(null); this.aviso.set(`${a.nombre} es ahora el único artista muy destacado.`); },
+      next: guardado => { this.actualizarProtagonista(guardado); this.ocupado.set(null); this.aviso.set(`${a.nombre} es ahora el único artista muy destacado.`); },
       error: () => { this.ocupado.set(null); this.error.set('No se pudo actualizar el artista de la cabecera.'); }
     });
   }
