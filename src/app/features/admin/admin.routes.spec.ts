@@ -39,7 +39,7 @@ describe('Navegación real del administrador', () => {
     h.detectChanges();
     const enlaces = Array.from(h.routeNativeElement!.querySelectorAll<HTMLAnchorElement>('a[href]'));
     for (const ruta of ['/admin/destacados','/admin/municipios','/admin/publicidad-municipal',
-      '/admin/promocion','/admin/artistas','/admin/eventos']) {
+      '/admin/promocion','/admin/artistas','/admin/eventos','/admin/contactos']) {
       expect(enlaces.some(a => a.getAttribute('href') === ruta)).toBe(true);
     }
   });
