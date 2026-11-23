@@ -8,7 +8,7 @@ import { HttpClient } from '@angular/common/http';
     <div class="contacto">
       <header class="portada">
         <p class="ceja">CONSABORFLAMENCO · CONTACTO</p>
-        <h1>Hablemos de flamenco</h1>
+        <h1>Contacto</h1><h2 class="subtitulo">Hablemos de flamenco</h2>
         <p>¿Quieres dar a conocer tu arte, academia, evento o proyecto?
           Escríbenos y nuestro equipo recibirá tu consulta directamente.</p>
       </header>
@@ -68,6 +68,7 @@ import { HttpClient } from '@angular/common/http';
     .portada{padding:25px 0 46px;max-width:800px}
     .ceja{font-size:.77rem;color:#dbb47e;letter-spacing:.17em}
     h1{font:normal clamp(38px,5vw,65px) Georgia,serif;margin:12px 0}
+    .subtitulo{font:normal clamp(24px,3vw,36px) Georgia,serif;margin:0 0 14px;color:#e9ca9a}
     .portada>p:last-child{color:#e5d2bc;line-height:1.8}
     .contenido{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.8fr);gap:35px}
     .tarjeta{background:#f8f3ea;border-radius:14px;color:#241913;padding:clamp(20px,3vw,36px)}
