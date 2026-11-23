@@ -22,6 +22,7 @@ describe('Ficha pública del artista', () => {
   });
   afterEach(() => {
     backend.match('/api/v1/menu-publico').forEach(req => req.flush([]));
+    backend.match(req => req.url === '/api/v1/promocion/banners').forEach(req => req.flush([]));
     backend.verify();
   });
 
