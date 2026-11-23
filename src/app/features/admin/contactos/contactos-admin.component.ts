@@ -29,8 +29,12 @@ interface Contacto {
       placeholder="correo@ejemplo.com"></label>
    <button type="submit" [disabled]="ocupado() || !emailAvisos.trim()">Guardar email</button>
   </form>
-  <p class="nota">El envío necesita SMTP configurado en el servidor.
-   Si no lo está, los mensajes igualmente se guardan y aparecerán como «Sin SMTP».</p>
+  @if(smtpConfigurado()){
+    <p class="exito" role="status">Servicio SMTP configurado. La entrega final depende del proveedor de correo.</p>
+  } @else {
+    <p class="error" role="status">SMTP no configurado: se recibirán consultas en esta bandeja,
+      pero no se enviarán avisos por email hasta configurar el servidor.</p>
+  }
  </section>
  }
  <section class="panel">
@@ -106,6 +110,7 @@ export class ContactosAdminComponent implements OnInit {
  readonly ocupado=signal(false);
  readonly error=signal('');
  readonly aviso=signal('');
+ readonly smtpConfigurado=signal(false);
  emailAvisos='';
  filtro='TODOS';
  pagina=0;
@@ -114,8 +119,8 @@ export class ContactosAdminComponent implements OnInit {
  ngOnInit():void{
   this.cargar();
   if(this.auth.esPrincipal()){
-   this.http.get<{emailAvisos:string}>('/api/v1/admin/contactos/ajustes').subscribe({
-    next:r=>this.emailAvisos=r.emailAvisos,
+   this.http.get<{emailAvisos:string;smtpConfigurado:boolean}>('/api/v1/admin/contactos/ajustes').subscribe({
+    next:r=>{this.emailAvisos=r.emailAvisos;this.smtpConfigurado.set(r.smtpConfigurado);},
     error:()=>this.error.set('No se pudo consultar el email de avisos.')
    });
   }
@@ -140,8 +145,8 @@ export class ContactosAdminComponent implements OnInit {
  guardarEmail():void{
   if(this.ocupado()||!this.auth.esPrincipal())return;
   this.ocupado.set(true);this.error.set('');this.aviso.set('');
-  this.http.put<{emailAvisos:string}>('/api/v1/admin/contactos/ajustes',{emailAvisos:this.emailAvisos}).subscribe({
-   next:r=>{this.ocupado.set(false);this.emailAvisos=r.emailAvisos;this.aviso.set('Dirección de avisos actualizada.');},
+  this.http.put<{emailAvisos:string;smtpConfigurado:boolean}>('/api/v1/admin/contactos/ajustes',{emailAvisos:this.emailAvisos}).subscribe({
+   next:r=>{this.ocupado.set(false);this.emailAvisos=r.emailAvisos;this.smtpConfigurado.set(r.smtpConfigurado);this.aviso.set('Dirección de avisos actualizada.');},
    error:()=>{this.ocupado.set(false);this.error.set('No se pudo guardar. Comprueba el formato del correo.');}
   });
  }
