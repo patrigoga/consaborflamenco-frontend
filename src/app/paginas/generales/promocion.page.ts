@@ -1,12 +1,11 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 interface Tarifa {
  codigo:string;descripcion:string;precioMensualCentimos:number;
  descuentoPorcentaje:number;precioFinalCentimos:number;activo:boolean;
 }
 @Component({
-  selector:'csf-promocion',standalone:true,imports:[RouterLink],
+  selector:'csf-promocion',standalone:true,
   template:`
     <main class="promocion">
       <header><span class="ceja">PUBLICIDAD · CONSABORFLAMENCO</span>
@@ -38,7 +37,7 @@ interface Tarifa {
           Cada banner se identifica como publicidad y se programa por fechas.</p>
         <p><strong>Las tarifas son informativas, sin IVA.</strong> No existe todavía contratación
           ni pago automático desde esta página; la disponibilidad y condiciones se deben confirmar previamente.</p>
-        <a routerLink="/contacto">Consultar condiciones y disponibilidad →</a>
+        <p>La contratación todavía se gestiona manualmente. Estamos preparando un canal para solicitar disponibilidad y reservar espacios; hasta entonces esta página muestra únicamente las tarifas orientativas.</p>
       </section>
     </main>
   `,
