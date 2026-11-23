@@ -46,6 +46,8 @@ export const ADMIN_ROUTES: Routes = [
             loadComponent: () => import('./cargar-datos/cargar-datos.component').then(m => m.CargarDatosComponent) },
           { path: 'municipios', title: 'Catálogo de municipios – Panel ConSaborFlamenco',
             loadComponent: () => import('./municipios/catalogo-municipios-admin.component').then(m => m.CatalogoMunicipiosAdminComponent) },
+          { path: 'promocion', title: 'Promoción – Panel ConSaborFlamenco', canActivate: [principalGuard],
+            loadComponent: () => import('./promocion/promocion-admin.component').then(m => m.PromocionAdminComponent) },
           { path: 'publicidad-municipal', title: 'Publicidad municipal – Panel ConSaborFlamenco',
             loadComponent: () => import('./municipios/promociones-municipios-admin.component').then(m => m.PromocionesMunicipiosAdminComponent) },
           { path: 'destacados', title: 'Destacados – Panel ConSaborFlamenco',

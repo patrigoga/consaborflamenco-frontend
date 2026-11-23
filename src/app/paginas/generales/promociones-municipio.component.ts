@@ -93,8 +93,13 @@ export class PromocionesMunicipioComponent implements OnChanges, OnInit, OnDestr
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
   private temporizador?: ReturnType<typeof setInterval>;
   readonly promociones = signal<Promocion[]>([]);
+  readonly nuevasPosiciones = signal<number[]>([]);
   readonly hero = computed(() => this.promociones().filter(p => p.tipo === 'HERO').sort((a,b) => a.posicion-b.posicion));
-  readonly banners = computed(() => this.promociones().filter(p => p.tipo === 'BANNER').sort((a,b) => a.posicion-b.posicion));
+  // Si un espacio ya usa el nuevo sistema se evita su duplicado legacy.
+  // Los otros espacios históricos se conservan hasta que se revisen sus contratos.
+  readonly banners = computed(() => this.promociones()
+    .filter(p => p.tipo === 'BANNER' && !this.nuevasPosiciones().includes(p.posicion))
+    .sort((a,b) => a.posicion-b.posicion));
   readonly indice = signal(0);
   readonly actual = computed(() => this.hero()[this.indice()] ?? null);
 
@@ -110,7 +115,12 @@ export class PromocionesMunicipioComponent implements OnChanges, OnInit, OnDestr
 
   private cargar(): void {
     this.promociones.set([]);
+    this.nuevasPosiciones.set([]);
     this.indice.set(0);
+    const id = this.municipioId;
+    this.http.get<{posicion:number}[]>('/api/v1/promocion/banners?ubicacion=MUNICIPIO:' + id)
+      .subscribe({ next:items=>{if(id===this.municipioId)this.nuevasPosiciones.set(items.map(x=>x.posicion));},
+                   error:()=>{} });
     this.http.get<Promocion[]>('/api/v1/territorio/municipios/' + this.municipioId + '/promociones').subscribe({
       next: items => { this.promociones.set(items); this.indice.set(0); },
       error: () => this.promociones.set([])

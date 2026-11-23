@@ -13,6 +13,7 @@ import { FLAMENCO, MEMBRESIA, REVISTA, SECCIONES } from '../navegacion';
           <a routerLink="/" class="pie__logo">Con<span>Sabor</span>Flamenco</a>
           <p>Flamenco, cultura y comunidad.</p>
           <a [routerLink]="membresia.ruta" class="pie__miembro">{{ membresia.texto }}</a>
+          <p><a routerLink="/promocion">Promoción y publicidad</a></p>
         </div>
         <nav class="pie__columnas" aria-label="Mapa de la web">
           <div>
