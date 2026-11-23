@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { AuthService } from '../core/auth.service';
 
@@ -9,7 +10,7 @@ interface Contacto {
  avisoEstado:string;creadoEn:string;leidoEn:string|null;
 }
 @Component({
- selector:'adm-contactos',standalone:true,imports:[FormsModule],
+ selector:'adm-contactos',standalone:true,imports:[FormsModule,SlicePipe],
  template:`
  <header class="adm-cabecera"><div>
   <h1 class="adm-titulo">Bandeja de contactos</h1>
