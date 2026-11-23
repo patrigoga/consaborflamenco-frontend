@@ -45,7 +45,7 @@ const CODIGOS=[
           <strong>{{t.descripcion}}</strong>
           <label>Base (euros/mes)
             <input type="number" min="0" max="1000000" step="1" [value]="t.precioMensualCentimos/100"
-              (change)="cambiarTarifa(t.codigo,'precioMensualCentimos',Math.round(+$any($event.target).value*100))"></label>
+              (change)="cambiarTarifa(t.codigo,'precioMensualCentimos',(+$any($event.target).value*100))"></label>
           <label>Descuento %
             <input type="number" min="0" max="80" step="1" [value]="t.descuentoPorcentaje"
               (change)="cambiarTarifa(t.codigo,'descuentoPorcentaje',+$any($event.target).value)"></label>
