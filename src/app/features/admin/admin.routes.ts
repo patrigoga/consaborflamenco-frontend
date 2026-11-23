@@ -44,6 +44,8 @@ export const ADMIN_ROUTES: Routes = [
             loadComponent: () => import('./base-datos/base-datos-admin.component').then(m => m.BaseDatosAdminComponent) },
           { path: 'cargar-datos', title: 'Cargar datos – Panel ConSaborFlamenco', canActivate: [principalGuard],
             loadComponent: () => import('./cargar-datos/cargar-datos.component').then(m => m.CargarDatosComponent) },
+          { path: 'contactos', title: 'Bandeja de contactos – Panel ConSaborFlamenco',
+            loadComponent: () => import('./contactos/contactos-admin.component').then(m => m.ContactosAdminComponent) },
           { path: 'municipios', title: 'Catálogo de municipios – Panel ConSaborFlamenco',
             loadComponent: () => import('./municipios/catalogo-municipios-admin.component').then(m => m.CatalogoMunicipiosAdminComponent) },
           { path: 'promocion', title: 'Promoción – Panel ConSaborFlamenco', canActivate: [principalGuard],
