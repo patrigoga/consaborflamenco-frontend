@@ -1,5 +1,6 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BannersPromocionComponent } from '../../publicidad/banners-promocion.component';
 import { RouterLink } from '@angular/router';
 import { MEMBRESIA, SECCIONES } from '../../navegacion';
 import { Artista, ArtistasService } from '../../artistas.service';
@@ -8,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { Protagonista, ProtagonistasService } from './protagonistas.service';
 import { EventoPublico, EventosService } from '../eventos/eventos.service';
 
-@Component({selector:'app-home',standalone:true,imports:[CommonModule, RouterLink],templateUrl:'./home.component.html',styleUrl:'./home.component.css'})
+@Component({selector:'app-home',standalone:true,imports:[CommonModule, RouterLink, BannersPromocionComponent],templateUrl:'./home.component.html',styleUrl:'./home.component.css'})
 export class HomeComponent {
   readonly rutas = {
     artistas: SECCIONES.artistas.ruta, eventos: SECCIONES.eventos.ruta, academias: SECCIONES.academias.ruta,
