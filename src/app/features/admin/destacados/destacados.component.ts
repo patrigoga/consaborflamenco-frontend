@@ -84,13 +84,13 @@ import { Protagonista, ProtagonistasService } from '../../home/protagonistas.ser
         @if (p.imagenCabeceraUrl) {
           <div class="adm-cabecera-ajustes">
             <label>Posición horizontal: {{ posX }} %
-              <input type="range" min="0" max="100" [(value)]="posX" (input)="posX = +$any($event.target).value">
+              <input type="range" min="0" max="100" [value]="posX" (input)="posX = +$any($event.target).value">
             </label>
             <label>Posición vertical: {{ posY }} %
-              <input type="range" min="0" max="100" [(value)]="posY" (input)="posY = +$any($event.target).value">
+              <input type="range" min="0" max="100" [value]="posY" (input)="posY = +$any($event.target).value">
             </label>
             <label>Escala: {{ escala }} %
-              <input type="range" min="50" max="180" [(value)]="escala" (input)="escala = +$any($event.target).value">
+              <input type="range" min="50" max="180" [value]="escala" (input)="escala = +$any($event.target).value">
             </label>
             <div class="adm-cabecera-acciones">
               <button type="button" class="adm-btn adm-btn--oro" [disabled]="subiendoImagen()" (click)="guardarEncuadre()">Guardar encuadre</button>
