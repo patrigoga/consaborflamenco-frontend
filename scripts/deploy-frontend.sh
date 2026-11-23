@@ -45,5 +45,24 @@ for n in {1..12}; do
   sleep 4
 done
 [[ "$OK" == 1 ]] || { echo "Angular SSR no respondió" >&2; false; }
+
+# Comprobar directamente todas las rutas administrativas tras recrear el contenedor.
+# No consultar datos privados ni saltarse la autenticación: solo validar el shell
+# público que el servidor SSR entrega para rutas client-side.
+docker compose exec -T frontend node -e '
+const rutas = ["/admin", "/admin/destacados", "/admin/municipios",
+  "/admin/publicidad-municipal", "/admin/promocion", "/admin/artistas",
+  "/admin/eventos", "/admin/menu-publico", "/admin/base-datos"];
+(async () => {
+  for (const ruta of rutas) {
+    const r = await fetch("http://127.0.0.1:4000" + ruta, { redirect: "manual" });
+    const cuerpo = await r.text();
+    if (r.status !== 200 || !cuerpo.includes("app-root")) {
+      throw new Error("Ruta admin no disponible: " + ruta + " (HTTP " + r.status + ")");
+    }
+    console.log("Ruta admin OK:", ruta);
+  }
+})().catch(e => { console.error(e); process.exit(1); });
+'
 trap - ERR
 echo "Despliegue verificado: $NEW_IMAGE"
