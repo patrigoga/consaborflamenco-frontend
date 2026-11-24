@@ -18,6 +18,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'mi-cuenta/eventos/:id/editar', renderMode: RenderMode.Client },
   { path: 'mi-cuenta/perfil', renderMode: RenderMode.Client },
   { path: 'mi-cuenta', renderMode: RenderMode.Client },
+  // Catálogo público de publicidad: acceso directo válido con HTTP 200.
+  { path: 'promocion', renderMode: RenderMode.Server, status: 200 },
   // Registro preliminar: ruta pública válida, sin habilitar las altas ni indexarla.
   { path: 'registro', renderMode: RenderMode.Server, status: 200 },
   // Perfiles públicos dinámicos: el resolver conserva el 404 de la API si el artista no existe.
