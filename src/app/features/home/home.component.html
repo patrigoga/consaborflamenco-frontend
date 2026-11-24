@@ -48,7 +48,7 @@
     <p *ngIf="fuentes.fuentes().artistas === 'json' && !demo()" class="cinema-status">No se pudo cargar el JSON de ejemplo.</p>
     <p *ngIf="fuentes.fuentes().artistas === 'bd' && cargando()" class="cinema-status" role="status">Cargando artistas…</p>
     <p *ngIf="fuentes.fuentes().artistas === 'bd' && error()" class="cinema-status" role="alert">No podemos cargar los perfiles ahora. Inténtalo más tarde.</p>
-    <div class="cinema-rail" *ngIf="fuentes.fuentes().artistas === 'bd' && artistas().length">
+    <div class="cinema-rail cinema-rail--four" *ngIf="fuentes.fuentes().artistas === 'bd' && artistas().length">
       <a class="cinema-tile cinema-tile--artist" *ngFor="let artista of artistas()" [routerLink]="['/revista/artistas', artista.slug]" [attr.aria-label]="'Ver perfil de ' + artista.nombre">
         <div class="cinema-tile__media">
           <img *ngIf="artista.fotoUrl" [src]="artista.fotoUrl" [alt]="'Fotografía de ' + artista.nombre" loading="lazy">
