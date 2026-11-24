@@ -91,6 +91,7 @@ export class PromocionesMunicipioComponent implements OnChanges, OnInit, OnDestr
   @Input({required: true}) municipioId!: number;
   private readonly http = inject(HttpClient);
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
+  private revision=0;
   private temporizador?: ReturnType<typeof setInterval>;
   readonly promociones = signal<Promocion[]>([]);
   readonly nuevasPosiciones = signal<number[]>([]);
@@ -103,12 +104,16 @@ export class PromocionesMunicipioComponent implements OnChanges, OnInit, OnDestr
   readonly indice = signal(0);
   readonly actual = computed(() => this.hero()[this.indice()] ?? null);
 
-  ngOnChanges(): void { if (this.esNavegador && this.municipioId > 0) this.cargar(); }
+  ngOnChanges(): void {
+    if (!this.esNavegador) return;
+    if (this.municipioId > 0) this.cargar();
+    else { this.revision++;this.promociones.set([]);this.nuevasPosiciones.set([]);this.indice.set(0); }
+  }
   ngOnInit(): void {
     if (!this.esNavegador) return;
     this.temporizador = setInterval(() => this.siguiente(), 7000);
   }
-  ngOnDestroy(): void { if (this.temporizador) clearInterval(this.temporizador); }
+  ngOnDestroy(): void { this.revision++;if (this.temporizador) clearInterval(this.temporizador); }
   siguiente(): void { const n=this.hero().length; if (n>1) this.indice.update(i => (i+1)%n); }
   anterior(): void { const n=this.hero().length; if (n>1) this.indice.update(i => (i+n-1)%n); }
   esExterna(url: string): boolean { return /^https:\/\//i.test(url); }
@@ -117,13 +122,13 @@ export class PromocionesMunicipioComponent implements OnChanges, OnInit, OnDestr
     this.promociones.set([]);
     this.nuevasPosiciones.set([]);
     this.indice.set(0);
-    const id = this.municipioId;
+    const id = this.municipioId, revision = ++this.revision;
     this.http.get<{posicion:number}[]>('/api/v1/promocion/banners?ubicacion=MUNICIPIO:' + id)
-      .subscribe({ next:items=>{if(id===this.municipioId)this.nuevasPosiciones.set(items.map(x=>x.posicion));},
+      .subscribe({ next:items=>{if(revision===this.revision)this.nuevasPosiciones.set(items.map(x=>x.posicion));},
                    error:()=>{} });
     this.http.get<Promocion[]>('/api/v1/territorio/municipios/' + this.municipioId + '/promociones').subscribe({
-      next: items => { this.promociones.set(items); this.indice.set(0); },
-      error: () => this.promociones.set([])
+      next: items => { if(revision!==this.revision)return;this.promociones.set(items); this.indice.set(0); },
+      error: () => {if(revision===this.revision)this.promociones.set([]);}
     });
   }
 }

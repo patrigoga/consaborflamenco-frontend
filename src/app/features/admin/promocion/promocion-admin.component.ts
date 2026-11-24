@@ -44,14 +44,14 @@ const CODIGOS=[
         <div class="tarifa">
           <strong>{{t.descripcion}}</strong>
           <label>Base (euros/mes)
-            <input type="number" min="0" max="1000000" step="1" [value]="t.precioMensualCentimos/100"
-              (change)="cambiarTarifa(t.codigo,'precioMensualCentimos',(+$any($event.target).value*100))"></label>
+            <input type="number" min="0" max="1000000" step="0.01" [value]="t.precioMensualCentimos/100"
+              (change)="cambiarTarifa(t.codigo,'precioMensualCentimos',redondearCentimos($any($event.target).value))"></label>
           <label>Descuento %
             <input type="number" min="0" max="80" step="1" [value]="t.descuentoPorcentaje"
               (change)="cambiarTarifa(t.codigo,'descuentoPorcentaje',+$any($event.target).value)"></label>
           <label class="linea"><input type="checkbox" [checked]="t.activo"
               (change)="cambiarTarifa(t.codigo,'activo',$any($event.target).checked)"> Habilitada</label>
-          <small>Precio con descuento: <strong>{{((t.precioMensualCentimos*(100-t.descuentoPorcentaje)/100)/100).toFixed(2)}} €/mes</strong></small>
+          <small>Precio con descuento: <strong>{{importeConDescuento(t.precioMensualCentimos,t.descuentoPorcentaje)}} €/mes</strong></small>
           <button type="button" (click)="guardarTarifa(t)" [disabled]="ocupado()">Guardar tarifa</button>
         </div>
       }
@@ -92,7 +92,10 @@ const CODIGOS=[
         </label>
         <p>Disponibles: máximo dos espacios. <strong>{{bannerActual()?.activo?'Campaña activa':'Espacio disponible/inactivo'}}</strong></p>
       </div>
+      @if(cargando()){<p role="status">Cargando espacios…</p>}
+      @if(!cargando() && !cargaCorrecta()){<button type="button" (click)="cargarBanners()">Reintentar cargar espacios</button>}
       <form (ngSubmit)="guardarBanner()" class="formulario">
+        <fieldset [disabled]="ocupado() || !cargaCorrecta()"><legend>Datos de la campaña</legend>
         <label>Título del banner
           <input name="titulo" [(ngModel)]="datos.titulo" maxlength="180" required></label>
         <label>Anunciante
@@ -121,6 +124,7 @@ const CODIGOS=[
             || !datos.imagenUrl.trim() || !datos.destinoUrl.trim()">Guardar banner</button>
           <button type="button" [disabled]="ocupado() || !bannerActual()" (click)="desactivarBanner()">Desactivar banner</button>
         </div>
+        </fieldset>
       </form>
     } @else {
       <p>Selecciona un municipio para configurar sus dos espacios.</p>
@@ -132,6 +136,7 @@ const CODIGOS=[
   .panel h2{margin:0 0 10px}.panel p{line-height:1.5}
   .tarifas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
   .tarifa{padding:15px;border:1px solid #cfc3af;border-radius:8px;display:grid;gap:12px}
+  fieldset{border:0;padding:0;min-width:0}legend{font-weight:700}
   label{display:grid;gap:6px;margin:13px 0;font-weight:650}
   input,select{padding:10px;border:1px solid #96866e;border-radius:6px;max-width:100%;background:#fff;color:#24190f}
   .linea{display:flex;align-items:center;gap:8px}
@@ -156,6 +161,8 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
   readonly aviso=signal('');
   readonly error=signal('');
   readonly ocupado=signal(false);
+  readonly cargando=signal(false);
+  readonly cargaCorrecta=signal(false);
   tipoUbicacion:'PAGINA'|'MUNICIPIO'='PAGINA';
   codigo='INICIO';
   posicion=1;
@@ -170,13 +177,15 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
   ngOnDestroy():void{clearTimeout(this.temporizador);this.busquedaRev++;this.cargaRev++;}
   ubicacion():string{return this.tipoUbicacion==='PAGINA'?this.codigo:(this.municipioId>0?'MUNICIPIO:'+this.municipioId:'');}
   bannerActual():Banner|undefined{return this.banners().find(b=>b.posicion===this.posicion);}
+  redondearCentimos(euros:string):number{return Math.round(Number(euros)*100);}
+  importeConDescuento(base:number,descuento:number):string{return (Math.floor(base*(100-descuento)/100)/100).toFixed(2);}
   precioFinal():string{
     const codigo=this.tipoUbicacion==='MUNICIPIO'?'MUNICIPIO':
       ['INICIO','ARTISTAS','EVENTOS','ACADEMIAS'].includes(this.codigo)?this.codigo:'CATEGORIA';
     const t=this.tarifas().find(x=>x.codigo===codigo);
     if(!t)return '—';
     const desc=this.datos.descuentoPorcentaje??t.descuentoPorcentaje;
-    return (t.precioMensualCentimos*(100-desc)/10000).toFixed(2);
+    return this.importeConDescuento(t.precioMensualCentimos,desc);
   }
   cargarTarifas():void{
     this.http.get<Tarifa[]>('/api/v1/promocion/tarifas').subscribe({
@@ -188,7 +197,8 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
     this.tarifas.update(l=>l.map(t=>t.codigo===codigo?{...t,[campo]:valor}:t));
   }
   guardarTarifa(t:Tarifa):void{
-    if(!Number.isInteger(t.precioMensualCentimos)||t.precioMensualCentimos<0
+    if(this.ocupado())return;
+    if(!Number.isInteger(t.precioMensualCentimos)||t.precioMensualCentimos<0||t.precioMensualCentimos>100000000
       ||!Number.isInteger(t.descuentoPorcentaje)||t.descuentoPorcentaje<0||t.descuentoPorcentaje>80){
       this.error.set('Precio o descuento fuera de rango.');return;
     }
@@ -217,11 +227,13 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
   }
   cargarBanners():void{
     const ubicacion=this.ubicacion(),rev=++this.cargaRev;
+    this.error.set('');
+    this.cargaCorrecta.set(false);this.cargando.set(!!ubicacion);
     if(!ubicacion)return;
     this.http.get<Banner[]>('/api/v1/admin/promocion/banners',{params:new HttpParams().set('ubicacion',ubicacion)})
       .subscribe({
-        next:r=>{if(rev!==this.cargaRev)return;this.banners.set(r);this.cargarEdicion();},
-        error:()=>{if(rev===this.cargaRev)this.error.set('No se pudieron cargar los espacios.');}
+        next:r=>{if(rev!==this.cargaRev)return;this.cargando.set(false);this.cargaCorrecta.set(true);this.banners.set(r);this.cargarEdicion();},
+        error:()=>{if(rev===this.cargaRev){this.cargando.set(false);this.error.set('No se pudieron cargar los espacios.');}}
       });
   }
   cargarEdicion():void{
@@ -231,23 +243,30 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
       visibleDesde:b.visibleDesde?.slice(0,16)||'',visibleHasta:b.visibleHasta?.slice(0,16)||''}:vacio();
   }
   guardarBanner():void{
-    if(this.ocupado()||!this.ubicacion())return;
+    if(this.ocupado()||!this.cargaCorrecta()||!this.ubicacion())return;
     this.error.set('');this.aviso.set('');this.ocupado.set(true);
+    const rev=this.cargaRev,ubicacion=this.ubicacion(),posicion=this.posicion;
     const d=this.datos;
+    if(!d.titulo.trim()||!d.anunciante.trim()||!d.imagenUrl.trim()||!d.destinoUrl.trim()
+      ||(d.descuentoPorcentaje!==null&&(!Number.isInteger(d.descuentoPorcentaje)||d.descuentoPorcentaje<0||d.descuentoPorcentaje>80))
+      ||(d.visibleDesde&&d.visibleHasta&&d.visibleHasta<=d.visibleDesde)){
+      this.ocupado.set(false);this.error.set('Revisa los campos obligatorios, las fechas y el descuento (0–80 %).');return;
+    }
     const body={...d,visibleDesde:d.visibleDesde||null,visibleHasta:d.visibleHasta||null};
-    this.http.put<Banner>('/api/v1/admin/promocion/banners/'+this.posicion,body,
-      {params:new HttpParams().set('ubicacion',this.ubicacion())}).subscribe({
-        next:r=>{this.ocupado.set(false);this.banners.update(l=>[...l.filter(x=>x.posicion!==r.posicion),r]);this.aviso.set('Banner guardado.');},
-        error:()=>{this.ocupado.set(false);this.error.set('No se pudo guardar el banner. Revisa fechas, enlaces y descuentos.');}
+    this.http.put<Banner>('/api/v1/admin/promocion/banners/'+posicion,body,
+      {params:new HttpParams().set('ubicacion',ubicacion)}).subscribe({
+        next:r=>{this.ocupado.set(false);if(rev!==this.cargaRev)return;this.banners.update(l=>[...l.filter(x=>x.posicion!==r.posicion),r]);this.aviso.set('Banner guardado.');},
+        error:()=>{this.ocupado.set(false);if(rev!==this.cargaRev)return;this.error.set('No se pudo guardar el banner. Revisa fechas, enlaces y descuentos.');}
       });
   }
   desactivarBanner():void{
-    if(this.ocupado()||!this.ubicacion())return;
-    this.ocupado.set(true);
-    this.http.delete('/api/v1/admin/promocion/banners/'+this.posicion,
-      {params:new HttpParams().set('ubicacion',this.ubicacion())}).subscribe({
-        next:()=>{this.ocupado.set(false);this.banners.update(l=>l.map(b=>b.posicion===this.posicion?{...b,activo:false}:b));this.datos.activo=false;this.aviso.set('Banner desactivado.');},
-        error:()=>{this.ocupado.set(false);this.error.set('No se pudo desactivar el banner.');}
+    if(this.ocupado()||!this.cargaCorrecta()||!this.ubicacion())return;
+    const rev=this.cargaRev,ubicacion=this.ubicacion(),posicion=this.posicion;
+    this.ocupado.set(true);this.error.set('');this.aviso.set('');
+    this.http.delete('/api/v1/admin/promocion/banners/'+posicion,
+      {params:new HttpParams().set('ubicacion',ubicacion)}).subscribe({
+        next:()=>{this.ocupado.set(false);if(rev!==this.cargaRev)return;this.banners.update(l=>l.map(b=>b.posicion===posicion?{...b,activo:false}:b));if(this.posicion===posicion)this.datos.activo=false;this.aviso.set('Banner desactivado.');},
+        error:()=>{this.ocupado.set(false);if(rev!==this.cargaRev)return;this.error.set('No se pudo desactivar el banner.');}
       });
   }
 }
