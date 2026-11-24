@@ -19,3 +19,5 @@ jobs:
         run: npm run test:ci
       - name: Build Angular SSR
         run: npm run build
+      - name: Verify public advertising HTTP routes
+        run: npm run test:ssr:publicidad

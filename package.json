@@ -9,6 +9,7 @@
     "test:ci": "jest --ci --coverage",
     "e2e": "node e2e/panel-admin.e2e.mjs",
     "e2e:perfiles": "node e2e/perfiles-artista.e2e.mjs",
+    "test:ssr:publicidad": "node e2e/publicidad-http.mjs",
     "serve:e2e": "node e2e/servir-frontend.mjs"
   },
   "dependencies": {
