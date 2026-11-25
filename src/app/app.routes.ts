@@ -52,6 +52,8 @@ export const routes: Routes = [
         ]
       },
       seccion('municipios', () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage)),
+      { path: 'municipios/:municipio/:provincia', title: 'Municipio flamenco – ConSaborFlamenco',
+        loadComponent: () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage) },
       { path: 'municipios/:id', title: 'Municipio flamenco – ConSaborFlamenco',
         loadComponent: () => import('./paginas/generales/municipios.page').then(m => m.MunicipiosPage) },
       seccion('eventos', () => import('./paginas/generales/eventos.page').then(m => m.EventosPage)),
@@ -77,6 +79,8 @@ export const routes: Routes = [
         loadComponent: () => import('./features/miembros/mi-perfil.page').then(m => m.MiPerfilPage) },
       { path: 'mi-cuenta', title: 'Mi cuenta – ConSaborFlamenco', data: { noindex: true },
         loadComponent: () => import('./features/miembros/mi-cuenta.page').then(m => m.MiCuentaPage) },
+      { path: 'mi-cuenta/banners', title: 'Mis banners – ConSaborFlamenco', data: { noindex: true },
+        loadComponent: () => import('./publicidad/mis-banners.page').then(m => m.MisBannersPage) },
       { path: 'registro', title: 'Registro profesional – ConSaborFlamenco', data: { noindex: true }, loadComponent: () => import('./paginas/generales/registro-profesional.page').then(m => m.RegistroProfesionalComponent) },
       { path: 'vista-previa/artista', title: 'Diseño del perfil de artista', data: { noindex: true }, loadComponent: () => import('./features/artistas/perfil-preview.page').then(m => m.PerfilPreviewPage) },
       {

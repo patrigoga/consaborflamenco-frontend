@@ -18,6 +18,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'mi-cuenta/eventos/:id/editar', renderMode: RenderMode.Client },
   { path: 'mi-cuenta/perfil', renderMode: RenderMode.Client },
   { path: 'mi-cuenta', renderMode: RenderMode.Client },
+  { path: 'mi-cuenta/banners', renderMode: RenderMode.Client },
   // Catálogo público de publicidad: acceso directo válido con HTTP 200.
   { path: 'promocion', renderMode: RenderMode.Server, status: 200 },
   // Registro preliminar: ruta pública válida, sin habilitar las altas ni indexarla.
@@ -26,6 +27,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'revista/artistas/:slug', renderMode: RenderMode.Server },
   { path: 'eventos/:slug', renderMode: RenderMode.Server },
   { path: 'municipios/:id', renderMode: RenderMode.Server },
+  { path: 'municipios/:municipio/:provincia', renderMode: RenderMode.Server },
   { path: 'vista-previa/artista', renderMode: RenderMode.Server, status: 200 },
   // Cualquier otra dirección: página 404 con código HTTP 404 real.
   { path: '**', renderMode: RenderMode.Server, status: 404 }

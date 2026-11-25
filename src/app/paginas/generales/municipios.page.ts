@@ -1,15 +1,18 @@
 import { afterNextRender, Component, OnDestroy, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { BannersPromocionComponent } from '../../publicidad/banners-promocion.component';
+import { BannersMunicipalesComponent } from '../../publicidad/banners-municipales.component';
 import { PromocionesMunicipioComponent } from './promociones-municipio.component';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
 
 interface Municipio {
   id: number;
   nombre: string;
   slug: string;
   provincia: string;
+  provincia_slug: string;
   provincia_id: number;
   region: string;
   region_id: number;
@@ -37,7 +40,7 @@ interface ArtistaMunicipal {
 @Component({
   selector: 'csf-municipios',
   standalone: true,
-  imports: [RouterLink, DatePipe, PromocionesMunicipioComponent, BannersPromocionComponent],
+  imports: [RouterLink, DatePipe, PromocionesMunicipioComponent, BannersMunicipalesComponent],
   template: `
     <section class="municipios">
       <header class="cabecera">
@@ -49,7 +52,7 @@ interface ArtistaMunicipal {
       @if (error()) { <p class="estado" role="alert">{{ error() }}</p> }
       @if (cargando()) { <p class="estado" role="status">Cargando municipios…</p> }
       @if (municipio(); as lugar) {
-        <csf-banners-promocion [ubicacion]="'MUNICIPIO:' + lugar.id" />
+        <csf-banners-municipales [municipioId]="lugar.id" />
         <csf-promociones-municipio [municipioId]="lugar.id" />
         <nav class="ruta" aria-label="Jerarquía geográfica">
           <span>{{ lugar.pais }}</span><span aria-hidden="true"> / </span>
@@ -103,7 +106,7 @@ interface ArtistaMunicipal {
         @if (buscando()) { <p class="estado" role="status">Buscando municipios…</p> }
         <div class="tarjetas localidades">
           @for (lugar of municipios(); track lugar.id) {
-            <a class="tarjeta" [routerLink]="['/municipios', lugar.id]"><div class="datos">
+            <a class="tarjeta" [routerLink]="['/municipios', lugar.slug, lugar.provincia_slug]"><div class="datos">
               <strong>{{ lugar.nombre }}</strong>
               <small>{{ lugar.provincia }} · {{ lugar.region }}</small>
               <span>Descubrir municipio →</span>
@@ -149,6 +152,9 @@ interface ArtistaMunicipal {
 export class MunicipiosPage implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private revisionMunicipio = 0;
   readonly consulta = signal('');
   readonly buscando = signal(false);
   private temporizador?: ReturnType<typeof setTimeout>;
@@ -162,22 +168,25 @@ export class MunicipiosPage implements OnDestroy {
   readonly error = signal('');
 
   constructor() {
-    afterNextRender(() => this.route.paramMap.subscribe(params => {
+    afterNextRender(() => this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const id = Number(params.get('id'));
+      ++this.revisionMunicipio;
       this.municipio.set(null);
       this.artistas.set([]);
       this.eventos.set([]);
       this.error.set('');
-      if (params.has('id')) {
+      if (params.has('id') || params.has('municipio')) {
         clearTimeout(this.temporizador);
         ++this.revisionBusqueda;
         this.buscando.set(false);
-        if (!Number.isSafeInteger(id) || id < 1) {
+        if (params.has('id') && (!Number.isSafeInteger(id) || id < 1)) {
           this.cargando.set(false);
           this.error.set('El municipio solicitado no es válido.');
           return;
         }
-        this.cargarMunicipio(id);
+        const url = params.has('id') ? '/api/v1/territorio/municipios/' + id :
+          '/api/v1/territorio/municipios/por-nombre/' + encodeURIComponent(params.get('provincia')!) + '/' + encodeURIComponent(params.get('municipio')!);
+        this.cargarMunicipio(url, params.has('id'));
       } else this.buscarMunicipios();
     }));
   }
@@ -228,24 +237,31 @@ export class MunicipiosPage implements OnDestroy {
     });
   }
 
-  private cargarMunicipio(id: number): void {
+  private cargarMunicipio(url: string, redirigir: boolean): void {
+    const revision = this.revisionMunicipio;
     this.cargando.set(true);
-    this.http.get<Municipio>('/api/v1/territorio/municipios/' + id).subscribe({
+    this.http.get<Municipio>(url).subscribe({
       next: lugar => {
+        if (revision !== this.revisionMunicipio) return;
+        if (redirigir) {
+          void this.router.navigate(['/municipios', lugar.slug, lugar.provincia_slug], { replaceUrl: true });
+          return;
+        }
+        const id = lugar.id;
         this.municipio.set(lugar);
         this.cargandoEventos.set(true);
         this.http.get<EventoMunicipal[]>('/api/v1/territorio/municipios/' + id + '/eventos').subscribe({
-          next: rows => { this.eventos.set(rows); this.cargandoEventos.set(false); },
-          error: () => { this.eventos.set([]); this.cargandoEventos.set(false); }
+          next: rows => { if(revision===this.revisionMunicipio){this.eventos.set(rows); this.cargandoEventos.set(false);} },
+          error: () => { if(revision===this.revisionMunicipio){this.eventos.set([]); this.cargandoEventos.set(false);} }
         });
         this.http.get<ArtistaMunicipal[]>('/api/v1/territorio/artistas', {
           params: new HttpParams().set('nivel', 'municipio').set('id', id)
         }).subscribe({
-          next: rows => { this.artistas.set(rows); this.cargando.set(false); },
-          error: () => { this.error.set('No podemos cargar los artistas del municipio.'); this.cargando.set(false); }
+          next: rows => { if(revision===this.revisionMunicipio){this.artistas.set(rows); this.cargando.set(false);} },
+          error: () => { if(revision===this.revisionMunicipio){this.error.set('No podemos cargar los artistas del municipio.'); this.cargando.set(false);} }
         });
       },
-      error: () => { this.error.set('No se ha encontrado el municipio solicitado.'); this.cargando.set(false); }
+      error: () => { if(revision===this.revisionMunicipio){this.error.set('No se ha encontrado el municipio solicitado.'); this.cargando.set(false);} }
     });
   }
 }

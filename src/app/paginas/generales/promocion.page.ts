@@ -1,11 +1,15 @@
 import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
+import { SolicitudBannerComponent } from '../../publicidad/solicitud-banner.component';
 interface Tarifa {
  codigo:string;descripcion:string;precioMensualCentimos:number;
  descuentoPorcentaje:number;precioFinalCentimos:number;activo:boolean;
 }
 @Component({
-  selector:'csf-promocion',standalone:true,
+  selector:'csf-promocion',standalone:true,imports:[SolicitudBannerComponent],
   template:`
     <main class="promocion">
       <header><span class="ceja">PUBLICIDAD · CONSABORFLAMENCO</span>
@@ -13,6 +17,9 @@ interface Tarifa {
         <p>Presenta tus servicios a personas interesadas en el flamenco.
           Publicidad por páginas, categorías y municipios.</p>
       </header>
+      @if(municipioId() && posicion()){
+        <csf-solicitud-banner [municipioId]="municipioId()" [posicion]="posicion()" />
+      }
       <section aria-labelledby="tarifario"><h2 id="tarifario">Espacios disponibles y tarifas</h2>
         <div class="lista">
           @for(t of tarifas();track t.codigo){
@@ -35,9 +42,9 @@ interface Tarifa {
         <h2>¿Cómo funciona?</h2>
         <p>La promoción se prepara según la página, categoría o municipio donde quieres aparecer.
           Cada banner se identifica como publicidad y se programa por fechas.</p>
-        <p><strong>Las tarifas son informativas, sin IVA.</strong> No existe todavía contratación
-          ni pago automático desde esta página; la disponibilidad y condiciones se deben confirmar previamente.</p>
-        <p>La contratación todavía se gestiona manualmente. Estamos preparando un canal para solicitar disponibilidad y reservar espacios; hasta entonces esta página muestra únicamente las tarifas orientativas.</p>
+        <p><strong>Las tarifas son informativas, sin IVA.</strong> La contratación requiere confirmación
+          del administrador. La disponibilidad, las condiciones y el pago se confirman antes de activar el anuncio.</p>
+        <p>Para solicitar un banner municipal, visita el municipio y pulsa uno de sus espacios disponibles. El administrador confirmará la contratación y podrás gestionar el anuncio desde «Mis banners».</p>
       </section>
     </main>
   `,
@@ -64,7 +71,14 @@ export class PromocionPage {
   private readonly http=inject(HttpClient);
   readonly tarifas=signal<Tarifa[]>([]);
   readonly error=signal(false);
+  readonly municipioId=signal(0);readonly posicion=signal(0);
+  private readonly route=inject(ActivatedRoute);
+  private readonly destroyRef=inject(DestroyRef);
   constructor(){
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(p=>{
+      const id=Number(p.get('municipio')),pos=Number(p.get('posicion'));
+      this.municipioId.set(Number.isSafeInteger(id)&&id>0?id:0);this.posicion.set(pos===1||pos===2?pos:0);
+    });
     afterNextRender(()=>this.http.get<Tarifa[]>('/api/v1/promocion/tarifas').subscribe({
       next:r=>this.tarifas.set(r),error:()=>this.error.set(true)
     }));
