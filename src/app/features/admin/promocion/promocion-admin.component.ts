@@ -7,6 +7,7 @@ interface Tarifa {
  descuentoPorcentaje:number; activo:boolean; precioFinalCentimos:number;
 }
 interface Banner {
+ usuarioId?:number|null;
  ubicacion:string; posicion:number; titulo:string; anunciante:string; imagenUrl:string;
  destinoUrl:string; descuentoPorcentaje:number|null; activo:boolean;
  visibleDesde:string|null; visibleHasta:string|null;
@@ -14,6 +15,7 @@ interface Banner {
 }
 interface Municipio {id:number;nombre:string;provincia:string}
 interface Datos {
+ usuarioId?:number|null;
  titulo:string;anunciante:string;imagenUrl:string;destinoUrl:string;
  descuentoPorcentaje:number|null;activo:boolean;visibleDesde:string;visibleHasta:string;
 }
@@ -96,6 +98,7 @@ const CODIGOS=[
       @if(!cargando() && !cargaCorrecta()){<button type="button" (click)="cargarBanners()">Reintentar cargar espacios</button>}
       <form (ngSubmit)="guardarBanner()" class="formulario">
         <fieldset [disabled]="ocupado() || !cargaCorrecta()"><legend>Datos de la campaña</legend>
+        @if(datos.usuarioId){<p>Titular: usuario {{datos.usuarioId}} · {{ubicacion()}} · Banner {{posicion}}</p>}
         <label>Título del banner
           <input name="titulo" [(ngModel)]="datos.titulo" maxlength="180" required></label>
         <label>Anunciante
@@ -238,7 +241,7 @@ export class PromocionAdminComponent implements OnInit,OnDestroy {
   }
   cargarEdicion():void{
     const b=this.bannerActual();
-    this.datos=b?{titulo:b.titulo,anunciante:b.anunciante,imagenUrl:b.imagenUrl,
+    this.datos=b?{usuarioId:b.usuarioId??null,titulo:b.titulo,anunciante:b.anunciante,imagenUrl:b.imagenUrl,
       destinoUrl:b.destinoUrl,descuentoPorcentaje:b.descuentoPorcentaje,activo:b.activo,
       visibleDesde:b.visibleDesde?.slice(0,16)||'',visibleHasta:b.visibleHasta?.slice(0,16)||''}:vacio();
   }

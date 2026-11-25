@@ -36,12 +36,12 @@ describe('Buscador público de municipios', () => {
     jest.advanceTimersByTime(1);
     const req = backend.expectOne(r => r.url === '/api/v1/territorio/municipios' && r.params.get('q') === 'Alge');
     req.flush([{
-      id: 17, nombre: 'Algeciras', slug: 'algeciras', provincia: 'Cádiz', provincia_id: 11,
+      id: 17, nombre: 'Algeciras', slug: 'algeciras', provincia: 'Cádiz', provincia_slug: 'cadiz', provincia_id: 11,
       region: 'Andalucía', region_id: 1, pais: 'España', pais_id: 1
     }]);
     harness.detectChanges();
     expect(harness.routeNativeElement!.textContent).toContain('Algeciras');
-    expect(harness.routeNativeElement!.querySelector('a[href="/municipios/17"]')).not.toBeNull();
+    expect(harness.routeNativeElement!.querySelector('a[href="/municipios/algeciras/cadiz"]')).not.toBeNull();
   });
 
   it('ignora búsquedas antiguas al cambiar rápidamente el texto', async () => {

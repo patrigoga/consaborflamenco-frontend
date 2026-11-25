@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MiembroAuthService } from './miembro-auth.service';
 
 @Component({
@@ -40,6 +40,7 @@ export class MiembroAccesoPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(MiembroAuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -58,7 +59,11 @@ export class MiembroAccesoPage {
     this.enviando.set(true);
     const { email, password } = this.form.getRawValue();
     this.auth.entrar(email, password).subscribe({
-      next: () => { this.enviando.set(false); this.router.navigateByUrl('/mi-cuenta'); },
+      next: () => {
+        this.enviando.set(false);
+        const volver=this.route.snapshot.queryParamMap.get('volver')||'';
+        this.router.navigateByUrl(/^\/promocion\?municipio=\d+&posicion=[12]$/.test(volver)?volver:'/mi-cuenta');
+      },
       error: () => {
         this.enviando.set(false);
         this.form.controls.password.reset();

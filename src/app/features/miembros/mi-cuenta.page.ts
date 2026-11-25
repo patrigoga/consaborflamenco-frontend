@@ -27,8 +27,9 @@ import { MiembroAuthService } from './miembro-auth.service';
             <a routerLink="/mi-cuenta/eventos">Gestionar mis eventos</a>
           </article>
           <article>
-            <h2>Publicaciones y difusión</h2>
-            <p>Próximamente podrás compartir tus eventos en redes sociales desde aquí.</p>
+            <h2>Mis banners</h2>
+            <p>Consulta tus solicitudes y edita tus anuncios durante el contrato.</p>
+            <a routerLink="/mi-cuenta/banners">Gestionar mis banners</a>
           </article>
         </section>
         @if (error()) { <p role="alert">{{ error() }}</p> }
