@@ -42,8 +42,8 @@ interface Tarifa {
         <h2>¿Cómo funciona?</h2>
         <p>La promoción se prepara según la página, categoría o municipio donde quieres aparecer.
           Cada banner se identifica como publicidad y se programa por fechas.</p>
-        <p><strong>Las tarifas son informativas, sin IVA.</strong> No existe todavía contratación
-          ni pago automático desde esta página; la disponibilidad y condiciones se deben confirmar previamente.</p>
+        <p><strong>Las tarifas son informativas, sin IVA.</strong> La contratación requiere confirmación
+          del administrador. La disponibilidad, las condiciones y el pago se confirman antes de activar el anuncio.</p>
         <p>Para solicitar un banner municipal, visita el municipio y pulsa uno de sus espacios disponibles. El administrador confirmará la contratación y podrás gestionar el anuncio desde «Mis banners».</p>
       </section>
     </main>
