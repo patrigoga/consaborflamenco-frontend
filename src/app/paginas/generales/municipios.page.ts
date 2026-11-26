@@ -120,11 +120,11 @@ interface ArtistaMunicipal {
     </section>`,
   styles: [`
     :host{display:block;background:#121116;color:#f7f1e8;min-height:75vh}
-    .municipios{max-width:1200px;margin:auto;padding:0 24px 80px}
-    .cabecera{background:linear-gradient(120deg,#301d1b,#101015);padding:clamp(34px,7vw,100px) clamp(22px,5vw,70px);margin:0 -24px 38px}
+    .municipios{--municipios-gutter:clamp(20px,4vw,64px);width:100%;padding:0 var(--municipios-gutter) 80px}
+    .cabecera{background:linear-gradient(120deg,#301d1b,#101015);padding:clamp(48px,7vw,112px) clamp(22px,5.2vw,86px);margin:0 calc(-1 * var(--municipios-gutter)) 38px}
     .kicker{font-size:.75rem;letter-spacing:.19em;color:#dbb06b;font-weight:750}
-    h1{font-size:clamp(2.2rem,5vw,4.2rem);margin:14px 0;line-height:1.05}
-    h2{font-size:1.5rem;margin:40px 0 18px}
+    h1{font:400 clamp(40px,4.35vw,74px)/1.05 Georgia,serif;margin:14px 0;overflow-wrap:anywhere}
+    h2{font:600 clamp(23px,2.5vw,33px)/1.2 Georgia,serif;margin:40px 0 18px}
     .cabecera p{max-width:650px;line-height:1.6}
     a{color:inherit}
     .volver,.secciones a{color:#dfb878}
@@ -134,19 +134,20 @@ interface ArtistaMunicipal {
     .buscador div{display:flex;gap:12px}
     .buscador input{flex:1;min-width:0;padding:14px;border:1px solid #978671;border-radius:6px;font:inherit}
     .buscador button{border:0;border-radius:6px;padding:12px 23px;background:#cf9e57;color:#21170d;font-weight:750;cursor:pointer}
-    .tarjetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
-    .tarjeta{display:flex;flex-direction:column;border:1px solid #51443d;background:#211b21;border-radius:10px;overflow:hidden;text-decoration:none}
+    .tarjetas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}.localidades{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
+    .tarjeta{display:flex;flex-direction:column;border:1px solid #51443d;background:#1c1815;border-radius:9px;overflow:hidden;text-decoration:none}
     .tarjeta:hover,.tarjeta:focus-visible{border-color:#d3a35d}
-    .tarjeta img,.sin-foto{width:100%;aspect-ratio:4/3;object-fit:cover}
+    .tarjeta img,.sin-foto{width:100%;aspect-ratio:16/10;object-fit:cover}
     .sin-foto{display:grid;place-items:center;background:#392b2a;font-size:4rem;color:#d3aa71}
     .datos{display:flex;flex-direction:column;gap:8px;padding:16px}
-    .datos small{color:#e4cba8}.datos span{font-size:.85rem;color:#deb06c}
+    .datos strong{font:600 19px/1.2 Georgia,serif;overflow-wrap:anywhere}.datos small{color:#e4cba8}.datos span{font-size:.85rem;color:#deb06c}
     .localidades .tarjeta{min-height:125px;justify-content:center}
     .secciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:42px}
     .secciones section,.vacio{border:1px solid #4d413c;border-radius:10px;padding:22px;background:#1e1b21}
     .secciones h2{margin:0 0 10px;font-size:1.1rem}.secciones p,.vacio p{color:#ddd1c5;line-height:1.5}
     .estado{padding:20px}.vacio a{color:#e4ba7c}
-    @media(max-width:600px){.buscador div{flex-direction:column}}
+    @media(max-width:1050px){.tarjetas:not(.localidades){grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:600px){.buscador div{flex-direction:column}.tarjetas:not(.localidades){grid-template-columns:1fr}.cabecera{padding:38px var(--municipios-gutter)}}
   `]
 })
 export class MunicipiosPage implements OnDestroy {
