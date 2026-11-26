@@ -34,14 +34,14 @@ export interface InventarioMunicipal {
     </section>
   `,
   styles:[`
-    .espacios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:0 0 34px}
-    article{border:1px solid #766044;border-radius:10px;overflow:hidden;background:#241c20;min-width:0}
-    a,.reservado{display:flex;min-height:145px;color:#f7f1e8;text-decoration:none}
+    .espacios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px auto 34px;max-width:1272px}
+    article{border:1px solid #766044;border-radius:12px;overflow:hidden;background:#241b18;min-width:0}
+    a,.reservado{display:flex;min-height:108px;color:#f7f1e8;text-decoration:none}
     a:hover,a:focus-visible{outline:2px solid #e3b674;outline-offset:-2px}
-    img{width:42%;object-fit:cover;min-width:0}.texto{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:18px;overflow-wrap:anywhere}
+    img{width:40%;max-width:240px;object-fit:cover;min-width:0}.texto{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px;overflow-wrap:anywhere}
     small{color:#e1b878;font-size:.875rem}strong{font-size:1.125rem}span span{font-size:1rem}
     button{font:inherit;padding:12px}
-    @media(max-width:700px){.espacios{grid-template-columns:1fr}a,.reservado{min-height:130px}}
+    @media(max-width:740px){.espacios{grid-template-columns:1fr}img{width:35%}}
   `]
 })
 export class BannersMunicipalesComponent implements OnChanges {
