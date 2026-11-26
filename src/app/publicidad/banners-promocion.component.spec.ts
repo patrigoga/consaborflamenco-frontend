@@ -37,7 +37,17 @@ describe('Visualización pública de banners',()=>{
     h.expectOne(q=>q.params.get('ubicacion')==='EVENTOS').flush([1,2,3].map(posicion=>({...anuncio,posicion})));
     anterior.flush([{...anuncio,posicion:1,titulo:'Anuncio anterior'}]);f.detectChanges();
     expect(f.nativeElement.querySelectorAll('article')).toHaveLength(2);
-    expect(f.nativeElement.textContent).toContain('Publicidad');expect(f.nativeElement.textContent).not.toContain('Anuncio anterior');
+    expect(f.nativeElement.querySelector('section').getAttribute('aria-label')).toBe('Publicidad');
+    const enlaces = Array.from(f.nativeElement.querySelectorAll('article a')) as HTMLAnchorElement[];
+    expect(enlaces).toHaveLength(2);
+    for (const a of enlaces) {
+      expect(a.getAttribute('aria-label')).toBe('Publicidad: Anuncio actual');
+      expect(a.getAttribute('href')).toBe('https://example.com');
+      expect(a.querySelector('img')?.getAttribute('src')).toBe('/foto.jpg');
+      expect(a.querySelector('img')?.getAttribute('alt')).toBe('Anuncio actual');
+      expect(a.textContent?.trim()).toBe('');
+    }
+    expect(f.nativeElement.querySelector('[aria-label="Publicidad: Anuncio anterior"]')).toBeNull();
     const enlace=f.nativeElement.querySelector('a');expect(enlace.rel).toBe('sponsored noopener noreferrer');expect(enlace.target).toBe('_blank');
     f.componentRef.setInput('ubicacion','MODA');f.detectChanges();
     h.expectOne(q=>q.params.get('ubicacion')==='MODA').flush({}, {status:503,statusText:'No disponible'});f.detectChanges();
