@@ -16,14 +16,14 @@ export interface InventarioMunicipal {
           <article>
             @if(e.banner;as b){
               <a [href]="b.destinoUrl" [attr.target]="b.destinoUrl.startsWith('https://')?'_blank':null" rel="sponsored noopener noreferrer">
-                <img [src]="b.imagenUrl" [alt]="b.titulo"><span class="texto"><small>Publicidad</small><strong>{{b.titulo}}</strong><span>{{b.anunciante}}</span></span>
+                <img [src]="b.imagenUrl" [alt]="b.titulo">
               </a>
             } @else if(e.disponible && inv.contratacionHabilitada){
               <a routerLink="/promocion" [queryParams]="{municipio:municipioId,posicion:e.posicion}" [attr.aria-label]="'Contratar banner '+e.posicion+' en '+inv.nombre">
-                <img [src]="inv.imagenUrl" alt="Espacio publicitario disponible"><span class="texto"><small>Publicidad · Banner {{e.posicion}}</small><strong>Tu anuncio en {{inv.nombre}}</strong><span>Contratar este espacio</span></span>
+                <img [src]="inv.imagenUrl" alt="Espacio publicitario disponible"><span class="cta">Contratar este espacio</span>
               </a>
             } @else {
-              <div class="reservado"><img [src]="inv.imagenUrl" alt="Espacio publicitario"><span class="texto"><small>Publicidad · Banner {{e.posicion}}</small><strong>{{e.disponible?'Contratación no disponible':'Espacio reservado'}}</strong></span></div>
+              <div class="reservado"><img [src]="inv.imagenUrl" alt="Espacio publicitario"><span class="cta">{{e.disponible?'Contratación no disponible':'Espacio reservado'}}</span></div>
             }
           </article>
         }
@@ -34,14 +34,14 @@ export interface InventarioMunicipal {
     </section>
   `,
   styles:[`
-    .espacios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px auto 34px;max-width:1272px}
-    article{border:1px solid #766044;border-radius:12px;overflow:hidden;background:#241b18;min-width:0}
-    a,.reservado{display:flex;min-height:108px;color:#f7f1e8;text-decoration:none}
-    a:hover,a:focus-visible{outline:2px solid #e3b674;outline-offset:-2px}
-    img{width:40%;max-width:240px;object-fit:cover;min-width:0}.texto{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px;overflow-wrap:anywhere}
-    small{color:#e1b878;font-size:.875rem}strong{font-size:1.125rem}span span{font-size:1rem}
+    .espacios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0 34px}
+    article{aspect-ratio:3/1;border-radius:12px;overflow:hidden;background:#241b18;min-width:0;box-shadow:inset 0 0 0 1px #695037}
+    a,.reservado{position:relative;display:block;width:100%;height:100%;color:#f7f1e8;text-decoration:none}
+    a:hover,a:focus-visible{outline:2px solid #e3b674;outline-offset:-3px}
+    img{display:block;width:100%;height:100%;object-fit:contain}
+    .cta{position:absolute;bottom:8%;right:4%;max-width:92%;padding:6px 12px;border-radius:5px;background:#21170de8;color:#f5d58c;font-size:clamp(.75rem,1.2vw,1rem);font-weight:700;text-align:center}
     button{font:inherit;padding:12px}
-    @media(max-width:740px){.espacios{grid-template-columns:1fr}img{width:35%}}
+    @media(max-width:740px){.espacios{grid-template-columns:1fr}}
   `]
 })
 export class BannersMunicipalesComponent implements OnChanges {

@@ -19,11 +19,6 @@ export interface BannerPromocion {
               [attr.rel]="externa(b.destinoUrl)?'sponsored noopener noreferrer':'sponsored'"
               [attr.aria-label]="'Publicidad: '+b.titulo">
               <img [src]="b.imagenUrl" [alt]="b.titulo" loading="lazy">
-              <div class="banner-promocion__texto">
-                <span class="banner-promocion__marca">Publicidad</span>
-                <strong>{{b.titulo}}</strong>
-                <small>{{b.anunciante}}</small>
-              </div>
             </a>
           </article>
         }
@@ -31,18 +26,12 @@ export interface BannerPromocion {
     }
   `,
   styles:[`
-    .banner-promocion{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;
-      max-width:1400px;margin:20px auto;padding:0 clamp(16px,4vw,64px)}
-    .banner-promocion__item{min-width:0;min-height:108px;border:1px solid #695037;
-      background:#241b18;border-radius:12px;overflow:hidden}
-    .banner-promocion__item a{display:flex;align-items:stretch;min-height:108px;
-      text-decoration:none;color:#fff}
-    .banner-promocion__item img{width:40%;max-width:240px;object-fit:cover}
-    .banner-promocion__texto{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px}
-    .banner-promocion__marca{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;color:#e0b16c}
-    .banner-promocion__texto strong{font-size:clamp(.9rem,1.4vw,1.12rem)}
-    .banner-promocion__texto small{color:#d6c5b6}
-    @media(max-width:740px){.banner-promocion{grid-template-columns:1fr}.banner-promocion__item img{width:35%}}
+    .banner-promocion{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px auto;padding:0 clamp(20px,4vw,64px)}
+    .banner-promocion__item{min-width:0;aspect-ratio:3/1;background:#241b18;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px #695037}
+    .banner-promocion__item a{display:block;width:100%;height:100%;text-decoration:none}
+    .banner-promocion__item img{display:block;width:100%;height:100%;object-fit:contain}
+    .banner-promocion__item a:focus-visible{outline:2px solid #e3b674;outline-offset:-3px}
+    @media(max-width:740px){.banner-promocion{grid-template-columns:1fr}}
   `]
 })
 export class BannersPromocionComponent implements OnChanges {
