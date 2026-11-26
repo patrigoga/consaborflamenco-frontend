@@ -67,7 +67,7 @@ interface Promocion {
   `,
   styles: [`
     :host{display:block}
-    .slider{position:relative;min-height:clamp(250px,34vw,430px);background:linear-gradient(115deg,#3b2420,#101014);display:flex;align-items:flex-end;overflow:hidden;border-radius:12px;margin:12px 0 28px}
+    .slider{position:relative;min-height:clamp(320px,43vw,640px);background:linear-gradient(115deg,#3b2420,#101014);display:flex;align-items:flex-end;overflow:hidden;border-radius:12px;margin:12px 0 28px}
     .slider::after{position:absolute;inset:0;content:'';background:linear-gradient(90deg,#151217e8 0%,#1512178a 65%,#15121733);pointer-events:none}
     .slider__imagen{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
     .slider__contenido{position:relative;z-index:1;padding:clamp(24px,5vw,52px);max-width:720px}
