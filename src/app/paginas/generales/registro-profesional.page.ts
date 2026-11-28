@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 /**
  * Primera fase: interfaz preparada, sin altas de usuarios.
@@ -9,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'csf-registro-profesional',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <section class="registro" aria-labelledby="registro-titulo">
       <header>
@@ -44,10 +45,10 @@ import { FormsModule } from '@angular/forms';
         <div class="legal">
           <label class="casilla">
             <input type="checkbox" name="aceptaTerminos" [(ngModel)]="aceptaTerminos" required>
-            <span>Acepto los Términos y condiciones de uso.</span>
+            <span>Acepto los <a routerLink="/terminos-y-condiciones">Términos y condiciones de uso</a>.</span>
           </label>
           <p>He leído la Política de privacidad y entiendo cómo se tratarán mis datos.</p>
-          <p>Los enlaces a los textos legales estarán disponibles antes de abrir las altas.</p>
+          <p>Los Términos y condiciones están en preparación. La política de privacidad se publicará antes de abrir las altas.</p>
         </div>
 
         <button class="enviar" type="button" disabled>Crear mi cuenta</button>
