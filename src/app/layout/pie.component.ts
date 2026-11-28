@@ -30,7 +30,9 @@ import { FLAMENCO, MEMBRESIA, REVISTA, SECCIONES } from '../navegacion';
           </div>
         </nav>
       </div>
-      <p class="pie__legal">© {{ anio }} ConSaborFlamenco</p>
+      <div class="pie__legal"><p>© {{ anio }} ConSaborFlamenco</p>
+        <nav aria-label="Información legal"><a routerLink="/terminos-y-condiciones">Términos y condiciones</a></nav>
+      </div>
     </footer>
   `,
   styles: [`
